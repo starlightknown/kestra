@@ -5,11 +5,11 @@
         :gutter="10"
         class="w-100"
     >
-        <el-col :span="2" class="d-flex flex-column mt-1 mb-2 reorder">
+        <el-col :span="2" class="d-flex flex-column justify-content-center mt-1 mb-2 reorder" v-if="items.length > 1">
             <ChevronUp @click.prevent.stop="moveItem(index, 'up')" />
             <ChevronDown @click.prevent.stop="moveItem(index, 'down')" />
         </el-col>
-        <el-col :span="20">
+        <el-col :span="items.length > 1 ? 20 : 22" class="pe-2">
             <InputText
                 :model-value="element"
                 @update:model-value="(v) => handleInput(v, index)"
@@ -17,7 +17,7 @@
                 class="w-100"
             />
         </el-col>
-        <el-col :span="2" class="col align-self-center delete">
+        <el-col :span="2" class="d-flex align-items-center justify-content-center delete">
             <DeleteOutline @click="removeItem(index)" />
         </el-col>
     </el-row>
