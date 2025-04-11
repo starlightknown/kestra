@@ -962,6 +962,7 @@
     const  save = async () => {
         const result = await store.dispatch("flow/save", {
             content: editorDomElement.value?.$refs.monacoEditor.value ?? flowYaml.value,
+            namespace: props.namespace ?? route.params.namespace,
         })
         if(result === "redirect_to_update"){
             await router.push({
@@ -1101,7 +1102,7 @@
     async function loadFileAtPath(path){
         const content = await store.dispatch("namespace/readFile", {
             path,
-            namespace: props.namespace,
+            namespace: props.namespace ?? route.params.namespace,
         })
         store.commit("flow/setFlowYaml", content);
     }
@@ -1338,20 +1339,6 @@
         &.enhance-readability {
             padding: 1.5rem;
             background-color: var(--bs-gray-100);
-        }
-
-        &::-webkit-scrollbar {
-            width: 10px;
-            height: 2px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: var(--ks-background-card);
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: var(--ks-button-background-primary);
-            border-radius: 20px;
         }
     }
 
