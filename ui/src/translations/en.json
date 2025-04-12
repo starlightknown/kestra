@@ -800,7 +800,11 @@
           "fields": {
             "name": "Save Changes"
           }
-        }
+        },
+        "unsaved_changes_title": "Unsaved Changes",
+        "unsaved_changes_warning": "You have unsaved changes. Do you want to save them before leaving?",
+        "save_button": "Save",
+        "discard_button": "Discard"
       }
     },
     "apps": "Apps",
@@ -905,7 +909,7 @@
           "content": "\"Execute\" and see your flow in action."
         },
         "6": {
-          "title": "You’re all set!",
+          "title": "You're all set!",
           "content": "Check the Logs and Outputs tabs to track your execution progress.<br /><br />Then, head over to the Flows page to explore other use cases.",
           "primary": "Create a new flow",
           "secondary": "Explore other Flows"
