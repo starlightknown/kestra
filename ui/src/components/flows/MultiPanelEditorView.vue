@@ -33,12 +33,10 @@
     const store = useStore()
     const flow = computed(() => store.state.flow.flow)
 
-    // Set isCreating to false when component is mounted
     onMounted(() => {
         store.commit("flow/setIsCreating", false)
     })
 
-    // Set isCreating to false when flow changes
     watch(flow, () => {
         store.commit("flow/setIsCreating", false)
     })
