@@ -406,30 +406,23 @@
     function panelDragOver(e: DragEvent, panelIndex: number) {
         if (draggingPanel.value === null || draggingPanel.value === panelIndex) return;
         
-        // Remove dragover class from all panels
         panels.value.forEach(panel => panel.dragover = false);
-        
-        // Add dragover class to the current panel
         panels.value[panelIndex].dragover = true;
     }
 
     function panelDragLeave() {
-        // Remove dragover class from all panels
         panels.value.forEach(panel => panel.dragover = false);
     }
 
     function panelDrop(e: DragEvent, targetPanelIndex: number) {
         if (draggingPanel.value === null || draggingPanel.value === targetPanelIndex) return;
 
-        // Reorder panels
         const panelsCopy = [...panels.value];
         const [movedPanel] = panelsCopy.splice(draggingPanel.value, 1);
         panelsCopy.splice(targetPanelIndex, 0, movedPanel);
         
-        // Update panels
         panels.value = panelsCopy;
         
-        // Reset drag state
         draggingPanel.value = null;
         panelDragLeave();
     }
