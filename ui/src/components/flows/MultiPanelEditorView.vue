@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-    import {computed, Ref, watch} from "vue";
+    import {computed, Ref, watch, onMounted} from "vue";
     import {useStorage} from "@vueuse/core";
     import {useStore} from "vuex";
 
@@ -32,6 +32,16 @@
 
     const store = useStore()
     const flow = computed(() => store.state.flow.flow)
+
+    // Set isCreating to false when component is mounted
+    onMounted(() => {
+        store.commit("flow/setIsCreating", false)
+    })
+
+    // Set isCreating to false when flow changes
+    watch(flow, () => {
+        store.commit("flow/setIsCreating", false)
+    })
 
     /**
      * Focus or activate a tab from it's value
