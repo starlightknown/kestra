@@ -180,8 +180,19 @@
 
     function onResize(e: {size:number}[]) {
         let i = 0;
-        for(const p of panels.value){
-            p.size = e[i++].size
+        let totalSize = 0;
+        for(const p of panels.value) {
+            const size = Math.max(e[i++].size, 10);
+            p.size = size;
+            totalSize += size;
+        }
+        
+        if (totalSize > 0) {
+            for(const p of panels.value) {
+                if (p.size) {
+                    p.size = (p.size / totalSize) * 100;
+                }
+            }
         }
     }
 
