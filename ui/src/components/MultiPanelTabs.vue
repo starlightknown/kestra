@@ -1,15 +1,18 @@
 <template>
     <Splitpanes class="default-theme" @resize="onResize">
-        <Pane v-for="(panel, panelIndex) in panels" min-size="10" :key="panelIndex" :size="panel.size">
+        <Pane 
+            v-for="(panel, panelIndex) in panels" 
+            min-size="10" 
+            :key="panelIndex" 
+            :size="panel.size"
+            draggable="true"
+            @dragstart="(e) => panelDragStart(e, panelIndex)"
+            @dragover.prevent="(e) => panelDragOver(e, panelIndex)"
+            @dragleave.prevent="panelDragLeave"
+            @drop.prevent="(e) => panelDrop(e, panelIndex)"
+            :class="{'panel-dragover': panel.dragover}"
+        >
             <div class="editor-tabs-container">
-                <div 
-                    class="panel-drag-handle"
-                    draggable="true"
-                    @dragstart="(e) => dragstartPanel(e, panelIndex)"
-                    title="Drag to move panel"
-                >
-                    <DragIcon />
-                </div>
                 <div
                     class="editor-tabs"
                     role="tablist"
@@ -117,7 +120,6 @@
 
     import CloseIcon from "vue-material-design-icons/Close.vue"
     import CircleMediumIcon from "vue-material-design-icons/CircleMedium.vue"
-    import DragIcon from "vue-material-design-icons/DragVertical.vue"
     import DotsVertical from "vue-material-design-icons/DotsVertical.vue";
     import DockLeft from "vue-material-design-icons/DockLeft.vue";
     import DockRight from "vue-material-design-icons/DockRight.vue";
@@ -176,23 +178,12 @@
     const movedTabInfo = ref<TabInfo | null>(null);
     const dragging = ref(false);
     const tabContainerRefs = ref<HTMLDivElement[]>([]);
-    const movedPanelIndex = ref<number | null>(null);
+    const draggingPanel = ref<number | null>(null);
 
     function onResize(e: {size:number}[]) {
         let i = 0;
-        let totalSize = 0;
-        for(const p of panels.value) {
-            const size = Math.max(e[i++].size, 10);
-            p.size = size;
-            totalSize += size;
-        }
-        
-        if (totalSize > 0) {
-            for(const p of panels.value) {
-                if (p.size) {
-                    p.size = (p.size / totalSize) * 100;
-                }
-            }
+        for(const p of panels.value){
+            p.size = e[i++].size
         }
     }
 
@@ -233,17 +224,6 @@
         }
 
         mouseXRef.value = e.clientX
-
-        if(movedPanelIndex.value !== null) {
-            const panelIndex = getPanelIndex(e);
-            if(panelIndex === -1) {
-                return
-            }
-            panels.value.forEach((p, i) => {
-                p.dragover = i === panelIndex;
-            });
-            return;
-        }
 
         if(!movedTabInfo.value){
             return
@@ -311,22 +291,7 @@
         return targetTabIndex;
     }
 
-    function drop(e: DragEvent){
-        if(movedPanelIndex.value !== null) {
-            const targetPanelIndex = getPanelIndex(e);
-            if(targetPanelIndex === -1 || targetPanelIndex === movedPanelIndex.value) {
-                return;
-            }
-
-            const movedPanel = panels.value[movedPanelIndex.value];
-            panels.value.splice(movedPanelIndex.value, 1);
-            panels.value.splice(targetPanelIndex, 0, movedPanel);
-
-            movedPanelIndex.value = null;
-            panels.value.forEach(p => p.dragover = false);
-            return;
-        }
-
+    function drop(){
         if(!movedTabInfo.value){
             return
         }
@@ -343,7 +308,8 @@
     }
 
     function moveTab(movedTabInfo: TabInfo, targetPanelIndex: number, targetTabId?: string){
-        const {panelIndex: originalPanelIndex, tabIndex, tab: movedTab} = movedTabInfo;
+        const {tab: movedTab, panelIndex: originalPanelIndex, tabIndex} = movedTabInfo
+
         const targetTabIndex = getTargetTabIndex(targetPanelIndex, targetTabId);
 
         // In case of reordering of tabs we have to
@@ -385,14 +351,6 @@
         } else {
             // add the tab to the target panel in-place of the hovered potential tab
             panels.value[targetPanelIndex].tabs.splice(targetTabIndex + 1, 0, movedTab);
-        }
-        const totalSize = panels.value.reduce((sum, panel) => sum + (panel.size || 0), 0);
-        if (totalSize > 0) {
-            panels.value.forEach(panel => {
-                if (panel.size) {
-                    panel.size = (panel.size / totalSize) * 100;
-                }
-            });
         }
     }
 
@@ -438,11 +396,42 @@
         panel.tabs.splice(activeTabIndex, 1)
     }
 
-    function dragstartPanel(e: DragEvent, panelIndex: number) {
+    function panelDragStart(e: DragEvent, panelIndex: number) {
         if (e.dataTransfer) {
             e.dataTransfer.effectAllowed = "move";
+            draggingPanel.value = panelIndex;
         }
-        movedPanelIndex.value = panelIndex;
+    }
+
+    function panelDragOver(e: DragEvent, panelIndex: number) {
+        if (draggingPanel.value === null || draggingPanel.value === panelIndex) return;
+        
+        // Remove dragover class from all panels
+        panels.value.forEach(panel => panel.dragover = false);
+        
+        // Add dragover class to the current panel
+        panels.value[panelIndex].dragover = true;
+    }
+
+    function panelDragLeave() {
+        // Remove dragover class from all panels
+        panels.value.forEach(panel => panel.dragover = false);
+    }
+
+    function panelDrop(e: DragEvent, targetPanelIndex: number) {
+        if (draggingPanel.value === null || draggingPanel.value === targetPanelIndex) return;
+
+        // Reorder panels
+        const panelsCopy = [...panels.value];
+        const [movedPanel] = panelsCopy.splice(draggingPanel.value, 1);
+        panelsCopy.splice(targetPanelIndex, 0, movedPanel);
+        
+        // Update panels
+        panels.value = panelsCopy;
+        
+        // Reset drag state
+        draggingPanel.value = null;
+        panelDragLeave();
     }
 </script>
 
@@ -519,11 +508,7 @@
         gap: .5rem;
         color: var(--ks-content-secondary);
         opacity: .6;
-        cursor: pointer;
-        
-        .tab-icon{
-            color: var(--ks-content-inactive);
-        }
+
         &.active {
             opacity: 1;
             color: var(--ks-content-primary);
@@ -579,32 +564,13 @@
         transition: none;
     }
 
-    .panel-drag-handle {
-        display: flex;
-        align-items: center;
-        padding: 0 .5rem;
-        cursor: grab;
-        color: var(--ks-content-tertiary);
-        border-right: 1px solid var(--ks-border-primary);
-        
-        &:hover {
-            color: var(--ks-content-primary);
-            background-color: var(--ks-background-card-hover);
-        }
-        
-        &:active {
-            cursor: grabbing;
-        }
+    .panel-dragover {
+        background-color: var(--ks-background-card-hover);
+        transition: background-color 0.2s ease;
     }
 
-    .editor-tabs-container {
-        display: flex;
-        justify-content: space-between;
-        background-color: var(--ks-background-body);
-        border-bottom: 1px solid var(--ks-border-primary);
-        
-        &.dragover {
-            background-color: var(--ks-background-card-hover);
-        }
+    .splitpanes__pane {
+        cursor: move;
+        user-select: none;
     }
 </style>
