@@ -300,8 +300,7 @@
     }
 
     function moveTab(movedTabInfo: TabInfo, targetPanelIndex: number, targetTabId?: string){
-        const {tab: movedTab, panelIndex: originalPanelIndex, tabIndex} = movedTabInfo
-
+        const {panelIndex: originalPanelIndex, tabIndex, tab: movedTab} = movedTabInfo;
         const targetTabIndex = getTargetTabIndex(targetPanelIndex, targetTabId);
 
         // In case of reordering of tabs we have to
@@ -343,6 +342,14 @@
         } else {
             // add the tab to the target panel in-place of the hovered potential tab
             panels.value[targetPanelIndex].tabs.splice(targetTabIndex + 1, 0, movedTab);
+        }
+        const totalSize = panels.value.reduce((sum, panel) => sum + (panel.size || 0), 0);
+        if (totalSize > 0) {
+            panels.value.forEach(panel => {
+                if (panel.size) {
+                    panel.size = (panel.size / totalSize) * 100;
+                }
+            });
         }
     }
 
