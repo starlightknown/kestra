@@ -472,10 +472,13 @@
             }
         }
         .drag-handle {
-            cursor: move;
+            cursor: grab;
             opacity: 0.5;
             &:hover {
                 opacity: 1;
+            }
+            &:active {
+                cursor: grabbing;
             }
         }
     }
@@ -588,7 +591,11 @@
 
     .splitpanes__pane{
         transition: none;
-        cursor: default;
+        &.dragging {
+            opacity: 0.5;
+            background-color: var(--ks-background-card-hover);
+            transition: opacity 0.2s ease;
+        }
     }
 
     .panel-dragover {
@@ -596,8 +603,4 @@
         transition: background-color 0.2s ease;
     }
 
-    .splitpanes__pane {
-        cursor: move;
-        user-select: none;
-    }
 </style>
