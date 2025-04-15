@@ -75,7 +75,7 @@
                 </button>
                 
                 <el-dropdown trigger="click" placement="bottom-end">
-                    <DotsVertical class="me-2 tab-icon" />
+                    <el-button :icon="DotsVertical" link class="me-2 tab-icon" />
                     <template #dropdown>
                         <el-dropdown-menu class="m-2">
                             <el-dropdown-item 
@@ -133,11 +133,11 @@
 
     import CloseIcon from "vue-material-design-icons/Close.vue"
     import CircleMediumIcon from "vue-material-design-icons/CircleMedium.vue"
+    import DragVertical from "vue-material-design-icons/DragVertical.vue";
     import DotsVertical from "vue-material-design-icons/DotsVertical.vue";
     import DockLeft from "vue-material-design-icons/DockLeft.vue";
     import DockRight from "vue-material-design-icons/DockRight.vue";
     import Close from "vue-material-design-icons/Close.vue";
-    import DragVertical from "vue-material-design-icons/DragVertical.vue";
 
     const {t} = useI18n({useScope: "global"});
 
