@@ -5,14 +5,19 @@
             min-size="10" 
             :key="panelIndex" 
             :size="panel.size"
-            draggable="true"
-            @dragstart="(e) => panelDragStart(e, panelIndex)"
             @dragover.prevent="(e) => panelDragOver(e, panelIndex)"
             @dragleave.prevent="panelDragLeave"
             @drop.prevent="(e) => panelDrop(e, panelIndex)"
             :class="{'panel-dragover': panel.dragover}"
         >
             <div class="editor-tabs-container">
+                <el-button 
+                    :icon="DragVertical" 
+                    link 
+                    class="tab-icon drag-handle" 
+                    draggable="true"
+                    @dragstart="(e) => panelDragStart(e, panelIndex)"
+                />
                 <div
                     class="editor-tabs"
                     role="tablist"
@@ -73,12 +78,20 @@
                     <DotsVertical class="me-2 tab-icon" />
                     <template #dropdown>
                         <el-dropdown-menu class="m-2">
-                            <el-dropdown-item disabled :icon="DockRight">
+                            <el-dropdown-item 
+                                :icon="DockRight" 
+                                :disabled="panelIndex === panels.length - 1"
+                                @click="movePanel(panelIndex, 'right')"
+                            >
                                 <span class="small-text">
                                     {{ t("multi_panel_editor.move_right") }}
                                 </span>
                             </el-dropdown-item>
-                            <el-dropdown-item disabled :icon="DockLeft">
+                            <el-dropdown-item 
+                                :icon="DockLeft" 
+                                :disabled="panelIndex === 0"
+                                @click="movePanel(panelIndex, 'left')"
+                            >
                                 <span class="small-text">
                                     {{ t("multi_panel_editor.move_left") }}
                                 </span>
@@ -124,6 +137,7 @@
     import DockLeft from "vue-material-design-icons/DockLeft.vue";
     import DockRight from "vue-material-design-icons/DockRight.vue";
     import Close from "vue-material-design-icons/Close.vue";
+    import DragVertical from "vue-material-design-icons/DragVertical.vue";
 
     const {t} = useI18n({useScope: "global"});
 
@@ -426,6 +440,16 @@
         draggingPanel.value = null;
         panelDragLeave();
     }
+
+    function movePanel(panelIndex: number, direction: "left" | "right") {
+        const newIndex = direction === "left" ? panelIndex - 1 : panelIndex + 1;
+        if (newIndex < 0 || newIndex >= panels.value.length) return;
+
+        const panelsCopy = [...panels.value];
+        const [movedPanel] = panelsCopy.splice(panelIndex, 1);
+        panelsCopy.splice(newIndex, 0, movedPanel);
+        panels.value = panelsCopy;
+    }
 </script>
 
 <style lang="scss" scoped>
@@ -434,6 +458,8 @@
         justify-content: space-between;
         background-color: var(--ks-background-body);
         border-bottom: 1px solid var(--ks-border-primary);
+        align-items: center;
+        padding: 0 0.5rem;
         button.split_right{
             border: none;
             color: var(--ks-content-tertiary);
@@ -443,6 +469,13 @@
             svg {
                 height: 16px;
                 width: 16px;
+            }
+        }
+        .drag-handle {
+            cursor: move;
+            opacity: 0.5;
+            &:hover {
+                opacity: 1;
             }
         }
     }
@@ -555,6 +588,7 @@
 
     .splitpanes__pane{
         transition: none;
+        cursor: default;
     }
 
     .panel-dragover {
