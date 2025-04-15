@@ -796,15 +796,11 @@
           }
         },
         "save": {
-          "label": "Save Preferences",
-          "fields": {
-            "name": "Save Changes"
-          }
-        },
-        "unsaved_changes_title": "Unsaved Changes",
-        "unsaved_changes_warning": "You have unsaved changes. Do you want to save them before leaving?",
-        "save_button": "Save",
-        "discard_button": "Discard"
+          "label":"Save",
+          "discard": "Discard",
+          "unsaved_title": "Unsaved Changes",
+          "unsaved_warning": "You have unsaved changes. Do you want to save them before leaving?"
+        }
       }
     },
     "apps": "Apps",
