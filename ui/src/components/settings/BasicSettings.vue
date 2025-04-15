@@ -2,7 +2,7 @@
     <top-nav-bar :title="routeInfo.title">
         <template #additional-right>
             <el-button @click="saveAllSettings()" type="primary" :disabled="!hasUnsavedChanges">
-                {{ $t("settings.blocks.save.fields.name") }}
+                {{ $t("settings.blocks.save.label") }}
             </el-button>
         </template>
     </top-nav-bar>
@@ -361,11 +361,11 @@
                 
                 try {
                     await this.$confirm(
-                        this.$t("settings.blocks.unsaved_changes_warning"),
-                        this.$t("settings.blocks.unsaved_changes_title"),
+                        this.$t("settings.blocks.save.unsaved_warning"),
+                        this.$t("settings.blocks.save.unsaved_title"),
                         {
-                            confirmButtonText: this.$t("settings.blocks.save_button"),
-                            cancelButtonText: this.$t("settings.blocks.discard_button"),
+                            confirmButtonText: this.$t("settings.blocks.save.label"),
+                            cancelButtonText: this.$t("settings.blocks.save.discard"),
                             type: "warning",
                             showClose: false,
                             closeOnClickModal: false,
