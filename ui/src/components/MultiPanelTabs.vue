@@ -70,7 +70,7 @@
                 </button>
                 
                 <el-dropdown trigger="click" placement="bottom-end">
-                    <DotsVertical class="me-2 tab-icon" />
+                    <el-button :icon="DotsVertical" link class="me-2 tab-icon" />
                     <template #dropdown>
                         <el-dropdown-menu class="m-2">
                             <el-dropdown-item disabled :icon="DockRight">
