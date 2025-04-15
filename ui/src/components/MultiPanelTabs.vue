@@ -13,6 +13,8 @@
             :class="{'panel-dragover': panel.dragover}"
         >
             <div class="editor-tabs-container">
+                <el-button :icon="DragVertical" link class="tab-icon" />
+
                 <div
                     class="editor-tabs"
                     role="tablist"
@@ -120,6 +122,7 @@
 
     import CloseIcon from "vue-material-design-icons/Close.vue"
     import CircleMediumIcon from "vue-material-design-icons/CircleMedium.vue"
+    import DragVertical from "vue-material-design-icons/DragVertical.vue";
     import DotsVertical from "vue-material-design-icons/DotsVertical.vue";
     import DockLeft from "vue-material-design-icons/DockLeft.vue";
     import DockRight from "vue-material-design-icons/DockRight.vue";
