@@ -8,9 +8,9 @@
 
     <component
         v-else
-        :is="llastBreadcumb.component.type"
-        v-bind="llastBreadcumb.component.props"
-        :model-value="llastBreadcumb.component.props.modelValue"
+        :is="lastBreadcumb.component.type"
+        v-bind="lastBreadcumb.component.props"
+        :model-value="lastBreadcumb.component.props.modelValue"
         @update:model-value="validateTask"
     />
 
@@ -50,7 +50,7 @@
     const store = useStore();
 
     const breadcrumbs = computed(() => store.state.code.breadcrumbs);
-    const llastBreadcumb = computed(() => {
+    const lastBreadcumb = computed(() => {
         const index =
             breadcrumbs.value.length === 3 ? 2 : breadcrumbs.value.length - 1;
 
@@ -95,7 +95,7 @@
     const CURRENT = ref(null);
     const validateTask = (task) => {
         let temp = YAML_UTILS.parse(yaml.value);
-        if (llastBreadcumb.value.shown) {
+        if (lastBreadcumb.value.shown) {
             const field = breadcrumbs.value.at(-1).label;
             temp = {...temp, [field]: task};
         }
@@ -119,7 +119,7 @@
 
     import Save from "../components/Save.vue";
     const saveTask = () => {
-        if (llastBreadcumb.value.shown) {
+        if (lastBreadcumb.value.shown) {
             store.commit("code/removeBreadcrumb", {last: true});
             return;
         }
