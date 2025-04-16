@@ -96,7 +96,7 @@
     const validateTask = (task) => {
         let temp = YAML_UTILS.parse(yaml.value);
         
-        if (lastBreadcumb.value.shown) {
+        if (lastBreadcrumb.value.shown) {
             const field = breadcrumbs.value.at(-1).label;
             temp = {...temp, [field]: task};
         }
