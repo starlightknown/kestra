@@ -100,7 +100,7 @@
             const field = breadcrumbs.value.at(-1).label;
             temp = {...temp, [field]: task};
         }
-        
+
         temp = YAML_UTILS.stringify(temp);
         yaml.value = temp;
         CURRENT.value = temp;
