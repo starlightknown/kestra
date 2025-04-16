@@ -1,6 +1,6 @@
 <template>
     <TaskEditor
-        v-if="!lastBreadcrumb.shown"
+        v-if="!lastBreadcumb.shown"
         v-model="yaml"
         :section
         @update:model-value="validateTask"
@@ -8,9 +8,9 @@
 
     <component
         v-else
-        :is="lastBreadcrumb.component.type"
-        v-bind="lastBreadcrumb.component.props"
-        :model-value="lastBreadcrumb.component.props.modelValue"
+        :is="llastBreadcumb.component.type"
+        v-bind="llastBreadcumb.component.props"
+        :model-value="llastBreadcumb.component.props.modelValue"
         @update:model-value="validateTask"
     />
 
@@ -50,7 +50,7 @@
     const store = useStore();
 
     const breadcrumbs = computed(() => store.state.code.breadcrumbs);
-    const lastBreadcrumb = computed(() => {
+    const llastBreadcumb = computed(() => {
         const index =
             breadcrumbs.value.length === 3 ? 2 : breadcrumbs.value.length - 1;
 
@@ -95,7 +95,7 @@
     const CURRENT = ref(null);
     const validateTask = (task) => {
         let temp = YAML_UTILS.parse(yaml.value);
-        if (lastBreadcrumb.value.shown) {
+        if (llastBreadcumb.value.shown) {
             const field = breadcrumbs.value.at(-1).label;
             temp = {...temp, [field]: task};
         }
@@ -119,7 +119,7 @@
 
     import Save from "../components/Save.vue";
     const saveTask = () => {
-        if (lastBreadcrumb.value.shown) {
+        if (llastBreadcumb.value.shown) {
             store.commit("code/removeBreadcrumb", {last: true});
             return;
         }
