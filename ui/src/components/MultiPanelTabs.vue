@@ -459,7 +459,7 @@
         background-color: var(--ks-background-body);
         border-bottom: 1px solid var(--ks-border-primary);
         align-items: center;
-        padding: 0 0.5rem;
+
         button.split_right{
             border: none;
             color: var(--ks-content-tertiary);
