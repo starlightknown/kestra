@@ -223,13 +223,12 @@
                 clearTimeout(this.timer);
                 this.taskYaml = value;
                 
-                // Only validate after user stops typing for 1 second
                 this.timer = setTimeout(() => {
                     if (this.lastValidatedValue !== value) {
                         this.lastValidatedValue = value;
                         this.$store.dispatch("flow/validateTask", {task: value, section: this.section});
                     }
-                }, 1000);
+                }, 500);
             },
             defaultActiveTab() {
                 return this.readOnly ? "source" : "form";

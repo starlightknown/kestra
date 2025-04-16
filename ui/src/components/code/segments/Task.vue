@@ -95,11 +95,12 @@
     const CURRENT = ref(null);
     const validateTask = (task) => {
         let temp = YAML_UTILS.parse(yaml.value);
-        
+
         if (lastBreadcrumb.value.shown) {
             const field = breadcrumbs.value.at(-1).label;
             temp = {...temp, [field]: task};
         }
+        
         temp = YAML_UTILS.stringify(temp);
         yaml.value = temp;
         CURRENT.value = temp;
@@ -110,7 +111,7 @@
                 lastValidatedValue.value = temp;
                 store.dispatch("flow/validateTask", {task: temp, section: section.value});
             }
-        }, 1000);
+        }, 500);
     };
 
     const timer = ref(null);
