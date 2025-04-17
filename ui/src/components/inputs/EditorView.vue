@@ -906,12 +906,10 @@
 
     const editorUpdate = (source) => {
         const currentIsFlow = isFlow.value;
-
         updatedFromEditor.value = true;
         store.commit("flow/setFlowYaml", source);
-
         clearTimeout(timer.value);
-        timer.value = setTimeout(() => onEdit(source, currentIsFlow), 500);
+        timer.value = setTimeout(() => onEdit(source, currentIsFlow), 1000);
     };
 
     const switchViewType = (event, shouldPersist = true) => {

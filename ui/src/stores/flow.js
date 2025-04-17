@@ -37,6 +37,7 @@ export default {
         haveChange: false,
         expandedSubflows: [],
         metadata: undefined,
+        isAutocomplete: false,
     },
 
     actions: {
@@ -137,6 +138,12 @@ export default {
             }
 
             if(!currentIsFlow) return;
+
+            // Skip validation if changes are from autocomplete
+            if (state.isAutocomplete) {
+                commit("setIsAutocomplete", false);
+                return Promise.resolve({});
+            }
 
             return dispatch("validateFlow", {
                 flow: state.isCreating ? state.flowYaml : getters.yamlWithNextRevision
@@ -670,6 +677,9 @@ export default {
         },
         setMetadata(state, value) {
             state.metadata = value
+        },
+        setIsAutocomplete(state, value) {
+            state.isAutocomplete = value;
         }
     },
     getters: {

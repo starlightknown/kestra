@@ -487,6 +487,9 @@
                 }
                 this.decorations.set(decorationsToAdd);
             },
+            onAutocomplete() {
+                this.$store.commit("flow/setIsAutocomplete", true);
+            },
         },
     };
 </script>
