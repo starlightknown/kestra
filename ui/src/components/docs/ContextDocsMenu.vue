@@ -293,7 +293,7 @@
 
     .search-input {
         width: 100%;
-        padding: 0.75rem;
+        padding: 0.5rem;
         border: 1px solid var(--border-color);
         border-radius: 6px;
         font-size: 0.9rem;
@@ -303,7 +303,7 @@
             background-color: #1e1e2e;
             box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
             border-radius: 6px;
-            padding: 0.75rem;
+            padding: 0.5rem;
 
             &.is-focus {
                 box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
@@ -312,8 +312,8 @@
 
         :deep(.el-input__inner) {
             color: var(--ks-content-primary);
-            font-size: 1rem;
-            height: 1.5rem;
+            font-size: 14px;
+            height: 1.25rem;
             background: transparent;
             
             &::placeholder {
@@ -322,10 +322,10 @@
         }
 
         :deep(.el-input__prefix) {
-            margin-right: 0.75rem;
+            margin-right: 0.5rem;
 
             .search-icon {
-                font-size: 1.25rem;
+                font-size: 1rem;
                 color: rgba(255, 255, 255, 0.5);
             }
         }
@@ -353,46 +353,50 @@
         top: 100%;
         left: 0;
         right: 0;
-        background: var(--el-bg-color);
-        border: 1px solid var(--el-border-color);
-        border-radius: 4px;
+        background-color: var(--ks-background-card);
+        border-radius: 6px;
         margin-top: 4px;
         max-height: 400px;
         overflow-y: auto;
         z-index: 1000;
         box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+        padding: 4px 0;
     }
 
     .search-result {
-        padding: 8px 12px;
+        padding: 6px 12px;
         cursor: pointer;
         display: block;
         text-decoration: none;
         color: inherit;
         
         &:hover {
-            background: var(--el-fill-color-light);
+            background: var(--ks-background-hover);
             text-decoration: none;
             color: inherit;
         }
 
         .result-title {
-            font-weight: 500;
-            color: var(--el-text-color-primary);
-            margin-bottom: 4px;
+            font-weight: 400;
+            color: var(--ks-content-primary);
+            margin-bottom: 2px;
+            font-size: 14px;
         }
 
         .result-preview {
             font-size: 12px;
-            color: var(--el-text-color-secondary);
+            color: var(--ks-content-secondary);
             margin: 0;
+            opacity: 0.8;
         }
     }
 
     .no-results {
-        color: var(--el-text-color-secondary);
+        color: var(--ks-content-secondary);
         text-align: center;
         cursor: default;
+        padding: 6px 12px;
+        font-size: 14px;
         
         &:hover {
             background: none;
