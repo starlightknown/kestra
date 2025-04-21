@@ -144,7 +144,6 @@
             clearTimeout(searchTimeout);
         }
 
-        // Set new timeout for debouncing
         searchTimeout = setTimeout(async () => {
             try {
                 loading.value = true;
@@ -167,7 +166,7 @@
             } finally {
                 loading.value = false;
             }
-        }, 500); // 300ms debounce
+        }, 500);
     };
 
     const handleClickOutside = (event) => {
