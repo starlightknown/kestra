@@ -29,6 +29,7 @@
                         :class="{'selected': index === selectedIndex}"
                         :href="result.parsedUrl.replace(/^docs\//, '')"
                         use-raw
+                        :data-index="index"
                         @click="() => {
                             searchQuery = '';
                             searchResults = [];
@@ -123,9 +124,9 @@
             searchQuery.value = "";
             searchResults.value = [];
             menuOpen.value = false;
-            const firstResult = document.querySelector(".search-result");
-            if (firstResult) {
-                firstResult.click();
+            const selectedResult = document.querySelector(`.search-result[data-index="${selectedIndex.value}"]`);
+            if (selectedResult) {
+                selectedResult.click();
             }
         }
     };
@@ -355,11 +356,18 @@
         display: block;
         text-decoration: none;
         color: inherit;
+        background: var(--ks-background-card);
+        transition: background-color 0.2s;
         
-        &:hover, &.selected {
+        &:hover {
             background: var(--ks-background-hover);
             text-decoration: none;
             color: inherit;
+        }
+
+        &.selected {
+            background: rgba(132, 5, 255, 0.1);
+            border-left: 3px solid #8405FF;
         }
 
         .result-title {
