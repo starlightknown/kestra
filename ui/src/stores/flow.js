@@ -170,9 +170,6 @@ export default {
                 return;
             }
 
-            // Check if we're editing an existing flow
-            const isExistingFlow = state.flow && state.flow.id === flowParsed.id;
-            
             let overrideFlow = false;
             if (getters.flowErrors) {
                 if (state.flowValidation.outdated && state.isCreating) {
@@ -199,11 +196,12 @@ export default {
                 }
             }
 
-            if (state.isCreating && !overrideFlow && !isExistingFlow) {
+            if (state.isCreating && !overrideFlow) {
                 await dispatch("createFlow", {flow: flowYaml})
                     .then((response) => {
                         this.$toast.bind({$t: this.$i18n.t})().saved(response.id);
                         dispatch("core/isUnsaved", false, {root: true});
+                        commit("setIsCreating", false);
                     });
             } else {
                 await dispatch("saveFlow", {flow: flowYaml})
@@ -213,7 +211,7 @@ export default {
                     });
             }
 
-            if ((state.isCreating && !isExistingFlow) || overrideFlow) {
+            if (state.isCreating || overrideFlow) {
                 return "redirect_to_update";
             }
 
