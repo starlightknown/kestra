@@ -85,7 +85,6 @@
     const searchQuery = ref("");
     const searchResults = ref([]);
     const loading = ref(false);
-    const allDocs = ref([]);
 
     const getTitle = (path) => {
         const parts = path.split("/");
@@ -94,36 +93,6 @@
             .split("-")
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
-    };
-
-    const getSearchScore = (result, query) => {
-        const searchLower = query.toLowerCase();
-        const title = getTitle(result.parsedUrl).toLowerCase();
-        const path = result.parsedUrl.toLowerCase();
-
-        let score = 0;
-
-        if (title.includes(searchLower)) {
-            score += 10;
-            if (title.startsWith(searchLower)) {
-                score += 5;
-            }
-        }
-
-        if (path.includes(searchLower)) {
-            score += 3;
-            if (path.split("/").some(part => part.startsWith(searchLower))) {
-                score += 2;
-            }
-        }
-
-        const words = searchLower.split(" ");
-        words.forEach(word => {
-            if (title.includes(word)) score += 2;
-            if (path.includes(word)) score += 1;
-        });
-
-        return score;
     };
 
     const showResults = computed(() => {
@@ -138,24 +107,17 @@
 
         try {
             loading.value = true;
-
-            if (allDocs.value.length === 0) {
-                const results = await store.dispatch("doc/search", "");
-                allDocs.value = results || [];
-            }
-
             const query = searchQuery.value.trim();
-            const filteredResults = allDocs.value
+            const results = await store.dispatch("doc/search", query);
+            
+            const processedResults = (results || [])
                 .map(result => ({
                     ...result,
                     title: getTitle(result.parsedUrl),
-                    score: getSearchScore(result, query)
                 }))
-                .filter(result => result.score > 0)
-                .sort((a, b) => b.score - a.score)
                 .slice(0, 10);
 
-            searchResults.value = filteredResults;
+            searchResults.value = processedResults;
         } catch (error) {
             console.error("Error searching docs:", error);
             searchResults.value = [];
