@@ -1,6 +1,6 @@
 <template>
     <div class="docsMenuWrapper">
-        <div class="search-container">
+        <div class="search-container" ref="searchContainer">
             <el-input
                 v-model="searchQuery"
                 :placeholder="t('search_docs')"
@@ -45,10 +45,10 @@
                 </div>
             </div>
         </div>
-        <el-button @click="menuOpen = !menuOpen" class="menuOpener">
+        <el-button @click.stop="menuOpen = !menuOpen" class="menuOpener">
             {{ t("documentationMenu") }} <MenuDown class="expandIcon" />
         </el-button>
-        <ul v-if="menuOpen" class="docsMenu list-unstyled d-flex flex-column gap-3">
+        <ul v-if="menuOpen" class="docsMenu list-unstyled d-flex flex-column gap-3" ref="menuContainer">
             <template v-if="rawStructure">
                 <li v-for="[sectionName, children] in sectionsWithChildren" :key="sectionName">
                     <span class="text-secondary">
@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-    import {ref, computed, watch, onUnmounted} from "vue";
+    import {ref, computed, watch, onUnmounted, onMounted} from "vue";
     import {useStore} from "vuex";
     import {useI18n} from "vue-i18n";
     import {Search} from "@element-plus/icons-vue";
@@ -86,6 +86,8 @@
     const searchResults = ref([]);
     const loading = ref(false);
     const selectedIndex = ref(0);
+    const searchContainer = ref(null);
+    const menuContainer = ref(null);
     let searchTimeout = null;
 
     const getTitle = (path) => {
@@ -168,7 +170,22 @@
         }, 500); // 300ms debounce
     };
 
+    const handleClickOutside = (event) => {
+        if (searchContainer.value && !searchContainer.value.contains(event.target)) {
+            resetSearch();
+        }
+        if (menuContainer.value && !menuContainer.value.contains(event.target) && 
+            !event.target.closest(".menuOpener")) {
+            menuOpen.value = false;
+        }
+    };
+
+    onMounted(() => {
+        document.addEventListener("click", handleClickOutside);
+    });
+
     onUnmounted(() => {
+        document.removeEventListener("click", handleClickOutside);
         if (searchTimeout) {
             clearTimeout(searchTimeout);
         }
