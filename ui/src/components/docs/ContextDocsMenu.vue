@@ -3,7 +3,7 @@
         <div class="search-container">
             <el-input
                 v-model="searchQuery"
-                :placeholder="t('Search')"
+                :placeholder="t('search_docs')"
                 class="search-input"
                 @input="handleSearch"
                 @keydown.enter.prevent="handleEnterKey"
@@ -18,7 +18,7 @@
                 </template>
             </el-input>
             <div v-if="loading" class="loading-indicator">
-                <span class="loading-spinner" />
+                {{ t('searching') }}
             </div>
             <div v-if="showResults" class="search-results">
                 <template v-if="searchResults.length > 0">
@@ -45,7 +45,7 @@
                     </context-docs-link>
                 </template>
                 <div v-else class="no-results">
-                    {{ t("No results found") }}
+                    {{ t("no_results_found") }}
                 </div>
             </div>
         </div>
@@ -323,16 +323,8 @@
         right: 0.75rem;
         top: 50%;
         transform: translateY(-50%);
-    }
-
-    .loading-spinner {
-        display: inline-block;
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid var(--border-color);
-        border-top-color: var(--primary-color);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+        color: var(--ks-content-secondary);
+        font-size: 14px;
     }
 
     .search-results {
@@ -394,12 +386,6 @@
         
         &:hover {
             background: none;
-        }
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
         }
     }
 </style>
