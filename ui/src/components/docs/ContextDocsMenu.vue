@@ -6,7 +6,9 @@
                 :placeholder="t('Search')"
                 class="search-input"
                 @input="handleSearch"
-                @keyup.enter="handleEnterKey"
+                @keydown.enter.prevent="handleEnterKey"
+                @keydown.up.prevent="handleKeyUp"
+                @keydown.down.prevent="handleKeyDown"
                 :loading="loading"
             >
                 <template #prefix>
@@ -21,9 +23,10 @@
             <div v-if="showResults" class="search-results">
                 <template v-if="searchResults.length > 0">
                     <context-docs-link
-                        v-for="result in searchResults"
+                        v-for="(result, index) in searchResults"
                         :key="result.url"
                         class="search-result"
+                        :class="{'selected': index === selectedIndex}"
                         :href="result.parsedUrl.replace(/^docs\//, '')"
                         use-raw
                         @click="() => {
@@ -85,6 +88,7 @@
     const searchQuery = ref("");
     const searchResults = ref([]);
     const loading = ref(false);
+    const selectedIndex = ref(0);
 
     const getTitle = (path) => {
         const parts = path.split("/");
@@ -99,9 +103,37 @@
         return searchQuery.value.trim().length > 0;
     });
 
+    const handleKeyUp = (e) => {
+        e.preventDefault();
+        if (searchResults.value.length > 0) {
+            selectedIndex.value = Math.max(0, selectedIndex.value - 1);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        e.preventDefault();
+        if (searchResults.value.length > 0) {
+            selectedIndex.value = Math.min(searchResults.value.length - 1, selectedIndex.value + 1);
+        }
+    };
+
+    const handleEnterKey = (e) => {
+        e.preventDefault();
+        if (searchResults.value.length > 0) {
+            searchQuery.value = "";
+            searchResults.value = [];
+            menuOpen.value = false;
+            const firstResult = document.querySelector(".search-result");
+            if (firstResult) {
+                firstResult.click();
+            }
+        }
+    };
+
     const handleSearch = async () => {
         if (!searchQuery.value) {
             searchResults.value = [];
+            selectedIndex.value = 0;
             return;
         }
 
@@ -118,21 +150,13 @@
                 .slice(0, 10);
 
             searchResults.value = processedResults;
+            selectedIndex.value = 0;
         } catch (error) {
             console.error("Error searching docs:", error);
             searchResults.value = [];
+            selectedIndex.value = 0;
         } finally {
             loading.value = false;
-        }
-    };
-
-    const handleEnterKey = () => {
-        if (searchResults.value.length > 0) {
-            const result = searchResults.value[0];
-            searchQuery.value = "";
-            searchResults.value = [];
-            menuOpen.value = false;
-            store.commit("doc/setDocPath", result.parsedUrl.replace(/^docs\//, ""));
         }
     };
 
@@ -332,7 +356,7 @@
         text-decoration: none;
         color: inherit;
         
-        &:hover {
+        &:hover, &.selected {
             background: var(--ks-background-hover);
             text-decoration: none;
             color: inherit;
