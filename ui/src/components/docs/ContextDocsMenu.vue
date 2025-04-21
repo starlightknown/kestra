@@ -30,11 +30,7 @@
                         :href="result.parsedUrl.replace(/^docs\//, '')"
                         use-raw
                         :data-index="index"
-                        @click="() => {
-                            searchQuery = '';
-                            searchResults = [];
-                            menuOpen = false;
-                        }"
+                        @click="resetSearch"
                     >
                         <h4 class="result-title">
                             {{ result.title }}
@@ -75,7 +71,7 @@
 </template>
 
 <script setup>
-    import {ref, computed, watch} from "vue";
+    import {ref, computed, watch, onUnmounted} from "vue";
     import {useStore} from "vuex";
     import {useI18n} from "vue-i18n";
     import {Search} from "@element-plus/icons-vue";
@@ -90,6 +86,7 @@
     const searchResults = ref([]);
     const loading = ref(false);
     const selectedIndex = ref(0);
+    let searchTimeout = null;
 
     const getTitle = (path) => {
         const parts = path.split("/");
@@ -121,14 +118,17 @@
     const handleEnterKey = (e) => {
         e.preventDefault();
         if (searchResults.value.length > 0) {
-            searchQuery.value = "";
-            searchResults.value = [];
-            menuOpen.value = false;
             const selectedResult = document.querySelector(`.search-result[data-index="${selectedIndex.value}"]`);
             if (selectedResult) {
                 selectedResult.click();
             }
         }
+    };
+
+    const resetSearch = () => {
+        searchQuery.value = "";
+        searchResults.value = [];
+        menuOpen.value = false;
     };
 
     const handleSearch = async () => {
@@ -138,28 +138,41 @@
             return;
         }
 
-        try {
-            loading.value = true;
-            const query = searchQuery.value.trim();
-            const results = await store.dispatch("doc/search", query);
-            
-            const processedResults = (results || [])
-                .map(result => ({
-                    ...result,
-                    title: getTitle(result.parsedUrl),
-                }))
-                .slice(0, 10);
-
-            searchResults.value = processedResults;
-            selectedIndex.value = 0;
-        } catch (error) {
-            console.error("Error searching docs:", error);
-            searchResults.value = [];
-            selectedIndex.value = 0;
-        } finally {
-            loading.value = false;
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
         }
+
+        // Set new timeout for debouncing
+        searchTimeout = setTimeout(async () => {
+            try {
+                loading.value = true;
+                const query = searchQuery.value.trim();
+                const results = await store.dispatch("doc/search", query);
+                
+                const processedResults = (results || [])
+                    .map(result => ({
+                        ...result,
+                        title: getTitle(result.parsedUrl),
+                    }))
+                    .slice(0, 10);
+
+                searchResults.value = processedResults;
+                selectedIndex.value = 0;
+            } catch (error) {
+                console.error("Error searching docs:", error);
+                searchResults.value = [];
+                selectedIndex.value = 0;
+            } finally {
+                loading.value = false;
+            }
+        }, 500); // 300ms debounce
     };
+
+    onUnmounted(() => {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+    });
 
     const SECTIONS = {
         "Get Started with Kestra": [
