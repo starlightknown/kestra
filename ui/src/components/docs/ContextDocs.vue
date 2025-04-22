@@ -102,7 +102,7 @@
         docPath.value = docHistory.value[currentHistoryIndex.value];
     };
 
-    async function setDocPageFromResponse(response) {
+    async function setDocPageFromResponse(response){
         await store.commit("doc/setPageMetadata", response.metadata);
         let content = response.content;
         if (!("canShare" in navigator)) {
@@ -110,8 +110,8 @@
         }
 
         const parse = await getMDCParser();
-        // this hack alleviates a little the parsing load of the first render on big docs	
-        // by only rendering the first 50 lines of the doc on opening	
+        // this hack alleviates a little the parsing load of the first render on big docs
+        // by only rendering the first 50 lines of the doc on opening
         // since they are the only ones visible in the beginning
         const firstLinesOfContent = content.split("---\n")[2].split("\n").slice(0, 50).join("\n") + "\nLoading the rest...\n";
         ast.value = await parse(firstLinesOfContent);
