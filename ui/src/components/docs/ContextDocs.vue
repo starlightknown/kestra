@@ -25,7 +25,10 @@
             </router-link>
         </template>
         <div ref="docWrapper">
-            <docs-menu />
+            <div class="docs-controls">
+                <context-docs-search />
+                <docs-menu />
+            </div>
             <docs-layout>
                 <template #content>
                     <MDCRenderer 
@@ -51,6 +54,7 @@
     import ContextDocsLink from "./ContextDocsLink.vue";
     import ContextChildCard from "./ContextChildCard.vue";
     import DocsMenu from "./ContextDocsMenu.vue";
+    import ContextDocsSearch from "./ContextDocsSearch.vue";
     import ContextInfoContent from "../ContextInfoContent.vue";
     import ContextChildTableOfContents from "./ContextChildTableOfContents.vue";
 
@@ -58,13 +62,11 @@
     const store = useStore();
     const {t} = useI18n({useScope: "global"});
 
-    // Refs
     const docWrapper = ref<HTMLDivElement | null>(null);
     const docHistory = ref<string[]>([]);
     const currentHistoryIndex = ref(-1);
     const ast = ref<any>(undefined);
 
-    // Computed
     const pageMetadata = computed(() => store.getters["doc/pageMetadata"]);
     const docPath = computed({
         get: () => store.getters["doc/docPath"],
@@ -78,7 +80,7 @@
     }));
     const canGoBack = computed(() => docHistory.value.length > 1 && currentHistoryIndex.value > 0);
 
-    // Methods
+
     const addToHistory = (path: string) => {
         if (!path) return;
 
@@ -109,11 +111,12 @@
         }
 
         const parse = await getMDCParser();
-        // Render first 50 lines initially for better performance
+        // this hack alleviates a little the parsing load of the first render on big docs
+        // by only rendering the first 50 lines of the doc on opening
+        // since they are the only ones visible in the beginning
         const firstLinesOfContent = content.split("---\n")[2].split("\n").slice(0, 50).join("\n") + "\nLoading the rest...\n";
         ast.value = await parse(firstLinesOfContent);
         
-        // Render full content after a short delay
         setTimeout(async () => {
             ast.value = await parse(content);
         }, 50);
@@ -138,7 +141,6 @@
         if (response) await setDocPageFromResponse(response);
     };
 
-    // Component registration
     const proseComponents = Object.fromEntries([
         ...Object.keys(getCurrentInstance()?.appContext.components ?? {})
             .filter(name => name.startsWith("Prose"))
@@ -149,7 +151,6 @@
         ["ChildTableOfContents", ContextChildTableOfContents]
     ]);
 
-    // Lifecycle hooks
     onMounted(() => {
         if (!docPath.value) {
             const lastPath = localStorage.getItem(LAST_DOC_PATH_KEY);
@@ -161,7 +162,6 @@
         ast.value = undefined;
     });
 
-    // Watchers
     watch(() => store.getters["doc/docPath"], async (val) => {
         if (!val?.length) {
             fetchDefaultDocFromDocIdIfPossible();
@@ -219,5 +219,12 @@
     .blank {
         margin-left: 1rem;
         color: var(--ks-content-tertiary);
+    }
+
+    .docs-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1rem;
     }
 </style>
