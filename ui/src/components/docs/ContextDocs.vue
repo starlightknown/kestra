@@ -1,14 +1,25 @@
 <template>
     <context-info-content :title="routeInfo.title">
+        <template #title>
+            <div class="title-container">
+                <button 
+                    class="back-button" 
+                    type="button"
+                    @click="goBack" 
+                    :disabled="!canGoBack"
+                    :class="{disabled: !canGoBack}"
+                    :aria-label="t('common.back')"
+                >
+                    <span class="back-icon" aria-hidden="true">‹</span>
+                </button>
+                <h2>{{ routeInfo.title }}</h2>
+            </div>
+        </template>
         <template #header>
             <router-link
-                :to="{
-                    name: 'docs/view',
-                    params:{
-                        path:docPath
-                    }
-                }"
+                :to="{name: 'docs/view', params: {path: docPath}}"
                 target="_blank"
+                :aria-label="t('common.openInNewTab')"
             >
                 <OpenInNew class="blank" />
             </router-link>
@@ -17,7 +28,13 @@
             <docs-menu />
             <docs-layout>
                 <template #content>
-                    <MDCRenderer v-if="ast?.body" :body="ast.body" :data="ast.data" :key="ast" :components="proseComponents" />
+                    <MDCRenderer 
+                        v-if="ast?.body" 
+                        :body="ast.body" 
+                        :data="ast.data" 
+                        :key="ast" 
+                        :components="proseComponents" 
+                    />
                 </template>
             </docs-layout>
         </div>
@@ -25,12 +42,10 @@
 </template>
 
 <script lang="ts" setup>
-    import {ref, watch, computed, getCurrentInstance, onUnmounted, nextTick} from "vue";
+    import {ref, watch, computed, getCurrentInstance, onUnmounted, onMounted, nextTick} from "vue";
     import {useStore} from "vuex";
     import {useI18n} from "vue-i18n";
-
     import OpenInNew from "vue-material-design-icons/OpenInNew.vue";
-
     import {MDCRenderer, getMDCParser} from "@kestra-io/ui-libs";
     import DocsLayout from "./DocsLayout.vue";
     import ContextDocsLink from "./ContextDocsLink.vue";
@@ -39,98 +54,169 @@
     import ContextInfoContent from "../ContextInfoContent.vue";
     import ContextChildTableOfContents from "./ContextChildTableOfContents.vue";
 
+    const LAST_DOC_PATH_KEY = "kestra_last_doc_path";
     const store = useStore();
     const {t} = useI18n({useScope: "global"});
 
+    // Refs
     const docWrapper = ref<HTMLDivElement | null>(null);
+    const docHistory = ref<string[]>([]);
+    const currentHistoryIndex = ref(-1);
+    const ast = ref<any>(undefined);
 
+    // Computed
     const pageMetadata = computed(() => store.getters["doc/pageMetadata"]);
-    const docPath = computed(() => store.getters["doc/docPath"]);
+    const docPath = computed({
+        get: () => store.getters["doc/docPath"],
+        set: (val) => {
+            store.commit("doc/setDocPath", val);
+            if (val) localStorage.setItem(LAST_DOC_PATH_KEY, val);
+        }
+    });
     const routeInfo = computed(() => ({
         title: pageMetadata.value?.title ?? t("docs"),
-    }))
+    }));
+    const canGoBack = computed(() => docHistory.value.length > 1 && currentHistoryIndex.value > 0);
 
-    onUnmounted(() => {
-        ast.value = undefined
-        store.commit("doc/setDocPath", "");
-    });
+    // Methods
+    const addToHistory = (path: string) => {
+        if (!path) return;
 
-    const ast = ref<any>(undefined);
-    const proseComponents = Object.fromEntries(
-        [...Object.keys(getCurrentInstance()?.appContext.components ?? {})
-             .filter(componentName => componentName.startsWith("Prose"))
-             .map(name => name.substring(5).replaceAll(/(.)([A-Z])/g, "$1-$2").toLowerCase())
-             .map(name => [name, "prose-" + name]),
-         ["a", ContextDocsLink],
-         ["ChildCard", ContextChildCard],
-         ["ChildTableOfContents", ContextChildTableOfContents]
-        ]);
-
-    async function fetchDefaultDocFromDocIdIfPossible() {
-        let response: {metadata: any, content:string} | undefined = undefined;
-        const docId = store.state.doc.docId;
-
-        // if there is a contextual doc configured for this docId, fetch it
-        try {
-            response = await store.dispatch("doc/fetchDocId", docId)
-        } catch {
-            // eat the error
+        if (docHistory.value.length === 0) {
+            docHistory.value = [path];
+            currentHistoryIndex.value = 0;
+            return;
         }
-
-        if(response === undefined){
-            refreshPage();
-        }else{
-            await setDocPageFromResponse(response)
+        
+        if (path !== docHistory.value[currentHistoryIndex.value]) {
+            docHistory.value = docHistory.value.slice(0, currentHistoryIndex.value + 1);
+            docHistory.value.push(path);
+            currentHistoryIndex.value = docHistory.value.length - 1;
         }
-    }
+    };
 
-    async function setDocPageFromResponse(response){
+    const goBack = () => {
+        if (!canGoBack.value) return;
+        currentHistoryIndex.value--;
+        docPath.value = docHistory.value[currentHistoryIndex.value];
+    };
+
+    const setDocPageFromResponse = async (response: {metadata: any, content: string}) => {
         await store.commit("doc/setPageMetadata", response.metadata);
         let content = response.content;
         if (!("canShare" in navigator)) {
             content = content.replaceAll(/\s*web-share\s*/g, "");
         }
+
         const parse = await getMDCParser();
-        // this hack alleviates a little the parsing load of the first render on big docs
-        // by only rendering the first 50 lines of the doc on opening
-        // since they are the only ones visible in the beginning
+        // Render first 50 lines initially for better performance
         const firstLinesOfContent = content.split("---\n")[2].split("\n").slice(0, 50).join("\n") + "\nLoading the rest...\n";
         ast.value = await parse(firstLinesOfContent);
+        
+        // Render full content after a short delay
         setTimeout(async () => {
             ast.value = await parse(content);
         }, 50);
-    }
+    };
 
-    watch(docPath, async (val) => {
+    const fetchDefaultDocFromDocIdIfPossible = async () => {
+        try {
+            const response = await store.dispatch("doc/fetchDocId", store.state.doc.docId);
+            if (response) {
+                await setDocPageFromResponse(response);
+            } else {
+                refreshPage();
+            }
+            if (docPath.value) addToHistory(docPath.value);
+        } catch {
+            refreshPage();
+        }
+    };
+
+    const refreshPage = async (val?: string) => {
+        const response = await store.dispatch("doc/fetchResource", `docs${val ?? ""}`);
+        if (response) await setDocPageFromResponse(response);
+    };
+
+    // Component registration
+    const proseComponents = Object.fromEntries([
+        ...Object.keys(getCurrentInstance()?.appContext.components ?? {})
+            .filter(name => name.startsWith("Prose"))
+            .map(name => name.substring(5).replaceAll(/(.)([A-Z])/g, "$1-$2").toLowerCase())
+            .map(name => [name, "prose-" + name]),
+        ["a", ContextDocsLink],
+        ["ChildCard", ContextChildCard],
+        ["ChildTableOfContents", ContextChildTableOfContents]
+    ]);
+
+    // Lifecycle hooks
+    onMounted(() => {
+        if (!docPath.value) {
+            const lastPath = localStorage.getItem(LAST_DOC_PATH_KEY);
+            if (lastPath) docPath.value = lastPath;
+        }
+    });
+
+    onUnmounted(() => {
+        ast.value = undefined;
+    });
+
+    // Watchers
+    watch(() => store.getters["doc/docPath"], async (val) => {
         if (!val?.length) {
-            fetchDefaultDocFromDocIdIfPossible()
+            fetchDefaultDocFromDocIdIfPossible();
             return;
         }
+
+        addToHistory(val);
         refreshPage(val);
-        nextTick(() => {
-            docWrapper.value?.scrollTo(0, 0);
-        });
+        nextTick(() => docWrapper.value?.scrollTo(0, 0));
     }, {immediate: true});
-
-    async function refreshPage(val) {
-        let response: {metadata: any, content:string} | undefined = undefined;
-
-        // if this fails to return a value, fetch the default doc
-        // if nothing, fetch the home page
-        if(response === undefined){
-            response = await store.dispatch("doc/fetchResource", `docs${val ?? ""}`)
-        }
-        if(response === undefined){
-            return;
-        }
-
-        setDocPageFromResponse(response)
-    }
 </script>
 
 <style lang="scss" scoped>
+    .title-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-height: 56px;
+    }
+
+    .back-button {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.8);
+        border-radius: 6px;
+        width: 40px;
+        height: 40px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+        font-size: 24px;
+        
+        &:hover:not(.disabled),
+        &:focus:not(.disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            color: #FFFFFF;
+            outline: none;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+    .back-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+
     .blank {
-        margin-top: 4px;
         margin-left: 1rem;
         color: var(--ks-content-tertiary);
     }

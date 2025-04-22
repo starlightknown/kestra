@@ -173,10 +173,6 @@
         if (searchContainer.value && !searchContainer.value.contains(event.target)) {
             resetSearch();
         }
-        if (menuContainer.value && !menuContainer.value.contains(event.target) && 
-            !event.target.closest(".menuOpener")) {
-            menuOpen.value = false;
-        }
     };
 
     onMounted(() => {
