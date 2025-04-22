@@ -131,13 +131,10 @@
         z-index: 1000;
         padding: .5rem 1rem;
         left: 1rem;
-        top: calc(100% + 0.5rem);
+        top: 100%;
         right: 1rem;
         background-color: var(--ks-background-card);
         border-radius: 6px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-        max-height: 80vh;
-        overflow-y: auto;
     }
 
     .docsMenuWrapper{
@@ -145,7 +142,6 @@
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        z-index: 1000;
     }
 
     .menuOpener{

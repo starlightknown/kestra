@@ -17,7 +17,12 @@
         </template>
         <template #header>
             <router-link
-                :to="{name: 'docs/view', params: {path: docPath}}"
+                :to="{
+                    name: 'docs/view',
+                    params:{
+                        path:docPath
+                    }
+                }"
                 target="_blank"
                 :aria-label="t('common.openInNewTab')"
             >
@@ -31,13 +36,7 @@
             </div>
             <docs-layout>
                 <template #content>
-                    <MDCRenderer 
-                        v-if="ast?.body" 
-                        :body="ast.body" 
-                        :data="ast.data" 
-                        :key="ast" 
-                        :components="proseComponents" 
-                    />
+                    <MDCRenderer v-if="ast?.body" :body="ast.body" :data="ast.data" :key="ast" :components="proseComponents" />
                 </template>
             </docs-layout>
         </div>
@@ -103,7 +102,7 @@
         docPath.value = docHistory.value[currentHistoryIndex.value];
     };
 
-    const setDocPageFromResponse = async (response: {metadata: any, content: string}) => {
+    async function setDocPageFromResponse(response) {
         await store.commit("doc/setPageMetadata", response.metadata);
         let content = response.content;
         if (!("canShare" in navigator)) {
@@ -111,18 +110,15 @@
         }
 
         const parse = await getMDCParser();
-        // this hack alleviates a little the parsing load of the first render on big docs
-        // by only rendering the first 50 lines of the doc on opening
-        // since they are the only ones visible in the beginning
         const firstLinesOfContent = content.split("---\n")[2].split("\n").slice(0, 50).join("\n") + "\nLoading the rest...\n";
         ast.value = await parse(firstLinesOfContent);
         
         setTimeout(async () => {
             ast.value = await parse(content);
         }, 50);
-    };
+    }
 
-    const fetchDefaultDocFromDocIdIfPossible = async () => {
+    async function fetchDefaultDocFromDocIdIfPossible() {
         try {
             const response = await store.dispatch("doc/fetchDocId", store.state.doc.docId);
             if (response) {
@@ -134,12 +130,20 @@
         } catch {
             refreshPage();
         }
-    };
+    }
 
-    const refreshPage = async (val?: string) => {
-        const response = await store.dispatch("doc/fetchResource", `docs${val ?? ""}`);
-        if (response) await setDocPageFromResponse(response);
-    };
+    async function refreshPage(val) {
+        let response: {metadata: any, content:string} | undefined = undefined;
+        // if this fails to return a value, fetch the default doc
+        // if nothing, fetch the home page
+        if(response === undefined){
+            response = await store.dispatch("doc/fetchResource", `docs${val ?? ""}`)
+        }
+        if(response === undefined){
+            return;
+        }
+        setDocPageFromResponse(response)
+    }
 
     const proseComponents = Object.fromEntries([
         ...Object.keys(getCurrentInstance()?.appContext.components ?? {})
