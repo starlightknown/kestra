@@ -69,17 +69,18 @@
 
 
     const addToHistory = (path: string) => {
-        if (!path) return;
-
+        // Always store the path, even empty ones
+        const pathToAdd = path || "";
+        
         if (docHistory.value.length === 0) {
-            docHistory.value = [path];
+            docHistory.value = [pathToAdd];
             currentHistoryIndex.value = 0;
             return;
         }
         
-        if (path !== docHistory.value[currentHistoryIndex.value]) {
+        if (pathToAdd !== docHistory.value[currentHistoryIndex.value]) {
             docHistory.value = docHistory.value.slice(0, currentHistoryIndex.value + 1);
-            docHistory.value.push(path);
+            docHistory.value.push(pathToAdd);
             currentHistoryIndex.value = docHistory.value.length - 1;
         }
     };
@@ -87,7 +88,7 @@
     const goBack = () => {
         if (!canGoBack.value) return;
         currentHistoryIndex.value--;
-        docPath.value = docHistory.value[currentHistoryIndex.value];
+        store.commit("doc/setDocPath", docHistory.value[currentHistoryIndex.value]);
     };
 
     async function setDocPageFromResponse(response){
@@ -114,14 +115,13 @@
             const response = await store.dispatch("doc/fetchDocId", store.state.doc.docId);
             if (response) {
                 await setDocPageFromResponse(response);
-                if (store.getters["doc/docPath"]) {
-                    addToHistory(store.getters["doc/docPath"]);
-                }
+                // Add the default page to history
+                addToHistory("");
             } else {
-                refreshPage();
+                refreshPage("");
             }
         } catch {
-            refreshPage();
+            refreshPage("");
         }
     }
 
@@ -136,9 +136,8 @@
             return;
         }
         await setDocPageFromResponse(response);
-        if (val) {
-            addToHistory(val);
-        }
+        // Always add to history, empty string for home/default page
+        addToHistory(val || "");
     }
 
     const proseComponents = Object.fromEntries([
