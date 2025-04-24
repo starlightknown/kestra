@@ -29,11 +29,9 @@
                 <OpenInNew class="blank" />
             </router-link>
         </template>
-        <div ref="docWrapper">
-            <div class="docs-controls">
-                <context-docs-search />
-                <docs-menu />
-            </div>
+        <div ref="docWrapper" class="docs-controls">
+            <context-docs-search />
+            <docs-menu />
             <docs-layout>
                 <template #content>
                     <MDCRenderer v-if="ast?.body" :body="ast.body" :data="ast.data" :key="ast" :components="proseComponents" />
@@ -240,5 +238,9 @@
         flex-direction: column;
         gap: 1rem;
         margin-bottom: 1rem;
+
+        > * {
+            margin-bottom: 1rem;
+        }
     }
 </style>
