@@ -1,19 +1,16 @@
 <template>
     <context-info-content :title="routeInfo.title">
-        <template #title>
-            <div class="title-container">
-                <button 
-                    class="back-button" 
-                    type="button"
-                    @click="goBack" 
-                    :disabled="!canGoBack"
-                    :class="{disabled: !canGoBack}"
-                    :aria-label="t('common.back')"
-                >
-                    <span class="back-icon" aria-hidden="true">‹</span>
-                </button>
-                <h2>{{ routeInfo.title }}</h2>
-            </div>
+        <template #back-button>
+            <button 
+                class="back-button" 
+                type="button"
+                @click="goBack" 
+                :disabled="!canGoBack"
+                :class="{disabled: !canGoBack}"
+                :aria-label="t('common.back')"
+            >
+                <span class="back-icon" aria-hidden="true">‹</span>
+            </button>
         </template>
         <template #header>
             <router-link
@@ -55,7 +52,6 @@
     import ContextInfoContent from "../ContextInfoContent.vue";
     import ContextChildTableOfContents from "./ContextChildTableOfContents.vue";
 
-    const LAST_DOC_PATH_KEY = "kestra_last_doc_path";
     const store = useStore();
     const {t} = useI18n({useScope: "global"});
 
@@ -65,13 +61,7 @@
     const ast = ref<any>(undefined);
 
     const pageMetadata = computed(() => store.getters["doc/pageMetadata"]);
-    const docPath = computed({
-        get: () => store.getters["doc/docPath"],
-        set: (val) => {
-            store.commit("doc/setDocPath", val);
-            if (val) localStorage.setItem(LAST_DOC_PATH_KEY, val);
-        }
-    });
+    const docPath = computed(() => store.getters["doc/docPath"]);
     const routeInfo = computed(() => ({
         title: pageMetadata.value?.title ?? t("docs"),
     }));
@@ -124,10 +114,12 @@
             const response = await store.dispatch("doc/fetchDocId", store.state.doc.docId);
             if (response) {
                 await setDocPageFromResponse(response);
+                if (store.getters["doc/docPath"]) {
+                    addToHistory(store.getters["doc/docPath"]);
+                }
             } else {
                 refreshPage();
             }
-            if (docPath.value) addToHistory(docPath.value);
         } catch {
             refreshPage();
         }
@@ -143,7 +135,10 @@
         if(response === undefined){
             return;
         }
-        setDocPageFromResponse(response)
+        await setDocPageFromResponse(response);
+        if (val) {
+            addToHistory(val);
+        }
     }
 
     const proseComponents = Object.fromEntries([
@@ -158,8 +153,7 @@
 
     onMounted(() => {
         if (!docPath.value) {
-            const lastPath = localStorage.getItem(LAST_DOC_PATH_KEY);
-            if (lastPath) docPath.value = lastPath;
+            fetchDefaultDocFromDocIdIfPossible();
         }
     });
 
@@ -180,12 +174,6 @@
 </script>
 
 <style lang="scss" scoped>
-    .title-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        min-height: 56px;
-    }
 
     .back-button {
         background: var(--ks-background-card);

@@ -1,7 +1,7 @@
 <template>
     <div class="wrapper">
         <div class="title">
-            <slot name="title"/>
+            <slot name="back-button" />
             <h2>{{ props.title }}</h2>
         </div>
         <div class="content">
@@ -31,16 +31,22 @@
 
     .title {
         display: flex;
-        padding-left: 1.7rem;
+        padding: 1rem;
+        padding-left: 1.6rem;
+        padding-right: 3rem;
         border-bottom: 1px solid var(--ks-border-primary);
+        align-items: center;
+        gap: 1rem;
 
-        :deep(h2) {
+        h2 {
             font-size: var(--font-size-lg);
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
             margin-bottom: 0;
+            margin-top: 0;
             width: 100%;
+            line-height: 1.2;
         }
     }
 </style>
