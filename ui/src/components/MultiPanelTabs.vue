@@ -2,7 +2,7 @@
     <Splitpanes class="default-theme" @resize="onResize">
         <Pane 
             v-for="(panel, panelIndex) in panels" 
-            min-size="10" 
+            :min-size="30" 
             :key="panelIndex" 
             :size="panel.size"
             @dragover.prevent="(e) => panelDragOver(e, panelIndex)"

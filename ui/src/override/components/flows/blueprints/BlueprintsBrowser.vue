@@ -368,15 +368,22 @@
                 text-decoration: inherit;
                 align-items: center;
                 width: 100%;
+                min-width: 0;
 
                 .left {
                     align-items: center;
+                    flex: 1;
+                    min-width: 0;
+                    
                     .title {
                         width: 400px;
                         font-weight: bold;
                         font-size: $small-font-size;
                         padding-left: 0;
                         margin-right: 15px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
 
                         @media (max-width: 780px) {
                             margin-bottom: 10px;
@@ -386,7 +393,8 @@
                     .tags {
                         margin: 10px 0;
                         display: flex;
-
+                        flex-wrap: wrap;
+                        min-width: 0;
 
                         .el-tag {
                             background-color: var(--ks-tag-background);
@@ -395,6 +403,9 @@
                             text-transform: capitalize;
                             font-size: var(--el-font-size-small);
                             border: 1px solid var(--ks-border-primary);
+                            max-width: 100%;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
                         }
 
                         .tag-box {
@@ -420,6 +431,8 @@
                 .side {
                     &.buttons {
                         white-space: nowrap;
+                        flex-shrink: 0;
+                        margin-left: 15px;
                     }
                 }
             }
