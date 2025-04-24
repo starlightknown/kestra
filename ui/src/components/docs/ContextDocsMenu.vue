@@ -130,9 +130,9 @@
         position: absolute;
         z-index: 1000;
         padding: .5rem 1rem;
-        left: 1rem;
+        left: 26px;
         top: 100%;
-        right: 1rem;
+        right: 26px;
         background-color: var(--ks-background-card);
         border-radius: 6px;
     }
@@ -142,11 +142,14 @@
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        padding-left: 27px;
+        padding-right: 27px;
     }
 
     .menuOpener{
         flex: 1;
         margin: 0;
+        width: 100%;
     }
 
     .expandIcon{

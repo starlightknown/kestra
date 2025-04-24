@@ -190,23 +190,25 @@
     }
 
     .back-button {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
+        background: var(--ks-background-card);
+        border: 1px solid var(--ks-border-color);
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--ks-content-primary);
         border-radius: 6px;
         width: 40px;
         height: 40px;
-        transition: background-color 0.2s ease, color 0.2s ease;
-        font-size: 24px;
+        transition: all 0.2s ease;
+        padding: 0;
+        flex-shrink: 0;
         
         &:hover:not(.disabled),
         &:focus:not(.disabled) {
-            background: rgba(255, 255, 255, 0.15);
-            color: #FFFFFF;
+            background: var(--ks-background-hover);
+            border-color: var(--ks-primary);
+            color: var(--ks-primary);
             outline: none;
         }
 
@@ -221,6 +223,11 @@
         align-items: center;
         justify-content: center;
         user-select: none;
+        font-size: 28px;
+        line-height: 0;
+        margin-top: -6px;
+        width: 28px;
+        height: 28px;
     }
 
     .blank {

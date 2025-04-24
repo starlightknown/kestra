@@ -32,8 +32,7 @@
 
     .title {
         display: flex;
-        padding-left: 1rem;
-        padding-right: 3rem;
+        padding-left: 1.7rem;
         border-bottom: 1px solid var(--ks-border-primary);
 
         :deep(h2) {

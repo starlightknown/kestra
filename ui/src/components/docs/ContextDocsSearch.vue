@@ -161,6 +161,8 @@
         position: relative;
         margin-bottom: 0;
         z-index: 1001;
+        padding-left: 20px;
+        padding-right: 20px;
     }
 
     .search-input {
@@ -204,7 +206,7 @@
 
     .loading-indicator {
         position: absolute;
-        right: 0.75rem;
+        right: 2rem;
         top: 50%;
         transform: translateY(-50%);
         color: var(--ks-content-secondary);
@@ -214,8 +216,8 @@
     .search-results {
         position: absolute;
         top: 100%;
-        left: 0;
-        right: 0;
+        left: 20px;
+        right: 20px;
         background-color: var(--ks-background-card);
         border-radius: 6px;
         margin-top: 4px;
