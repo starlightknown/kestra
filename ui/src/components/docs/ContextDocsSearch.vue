@@ -50,6 +50,7 @@
     import {useI18n} from "vue-i18n";
     import Magnify from "vue-material-design-icons/Magnify.vue";
     import ContextDocsLink from "./ContextDocsLink.vue";
+    import {debounce} from "lodash-es";
 
     const {t} = useI18n({useScope: "global"});
     const store = useStore();
@@ -59,7 +60,6 @@
     const loading = ref(false);
     const selectedIndex = ref(0);
     const searchContainer = ref(null);
-    let searchTimeout = null;
 
     const showResults = computed(() => {
         return searchQuery.value.trim().length > 0;
@@ -103,37 +103,38 @@
         searchResults.value = [];
     };
 
-    const handleSearch = async () => {
-        if (!searchQuery.value) {
+    const performSearch = async (query) => {
+        if (!query) {
             searchResults.value = [];
             selectedIndex.value = 0;
             return;
         }
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
+
+        try {
+            loading.value = true;
+            const results = await store.dispatch("doc/search", query);
+            
+            const processedResults = (results || [])
+                .map(result => ({
+                    ...result,
+                    title: getTitle(result.parsedUrl),
+                }))
+                .slice(0, 10);
+            searchResults.value = processedResults;
+            selectedIndex.value = 0;
+        } catch (error) {
+            console.error("Error searching docs:", error);
+            searchResults.value = [];
+            selectedIndex.value = 0;
+        } finally {
+            loading.value = false;
         }
-        searchTimeout = setTimeout(async () => {
-            try {
-                loading.value = true;
-                const query = searchQuery.value.trim();
-                const results = await store.dispatch("doc/search", query);
-                
-                const processedResults = (results || [])
-                    .map(result => ({
-                        ...result,
-                        title: getTitle(result.parsedUrl),
-                    }))
-                    .slice(0, 10);
-                searchResults.value = processedResults;
-                selectedIndex.value = 0;
-            } catch (error) {
-                console.error("Error searching docs:", error);
-                searchResults.value = [];
-                selectedIndex.value = 0;
-            } finally {
-                loading.value = false;
-            }
-        }, 500);
+    };
+
+    const debouncedSearch = debounce(performSearch, 500);
+
+    const handleSearch = () => {
+        debouncedSearch(searchQuery.value.trim());
     };
 
     const handleClickOutside = (event) => {
@@ -148,9 +149,7 @@
 
     onUnmounted(() => {
         document.removeEventListener("click", handleClickOutside);
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
+        debouncedSearch.cancel();
     });
 </script>
 
