@@ -159,23 +159,20 @@
         position: relative;
         margin-bottom: 0;
         z-index: 1001;
-        padding-left: 20px;
-        padding-right: 20px;
+        padding-top: 12px;
+        padding-left: 28px;
+        padding-right: 28px;
     }
 
     .search-input {
         width: 100%;
-        padding: 0.5rem;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        font-size: 0.9rem;
-        transition: border-color 0.2s;
 
         :deep(.el-input__wrapper) {
             background-color: #1e1e2e;
             box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             padding: 0.5rem;
+            transition: box-shadow 0.2s ease;
 
             &.is-focus {
                 box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
@@ -206,7 +203,7 @@
     .loading-indicator {
         position: absolute;
         right: 2rem;
-        top: 50%;
+        top: 60%;
         transform: translateY(-50%);
         color: var(--ks-content-secondary);
         font-size: 14px;
@@ -215,8 +212,8 @@
     .search-results {
         position: absolute;
         top: 100%;
-        left: 20px;
-        right: 20px;
+        left: 26px;
+        right: 26px;
         background-color: var(--ks-background-card);
         border-radius: 6px;
         margin-top: 4px;
