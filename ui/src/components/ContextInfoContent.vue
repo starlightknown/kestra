@@ -1,9 +1,8 @@
 <template>
     <div class="wrapper">
         <div class="title">
-            <slot name="title">
-                <h2>{{ props.title }}</h2>
-            </slot>
+            <slot name="title"/>
+            <h2>{{ props.title }}</h2>
         </div>
         <div class="content">
             <slot />
