@@ -11,9 +11,7 @@
             :loading="loading"
         >
             <template #prefix>
-                <el-icon class="search-icon">
-                    <Search />
-                </el-icon>
+                <magnify class="search-icon" />
             </template>
         </el-input>
         <div v-if="loading" class="loading-indicator">
@@ -50,7 +48,7 @@
     import {ref, computed, onMounted, onUnmounted} from "vue";
     import {useStore} from "vuex";
     import {useI18n} from "vue-i18n";
-    import {Search} from "@element-plus/icons-vue";
+    import Magnify from "vue-material-design-icons/Magnify.vue";
     import ContextDocsLink from "./ContextDocsLink.vue";
 
     const {t} = useI18n({useScope: "global"});
@@ -189,18 +187,19 @@
             font-size: 14px;
             height: 1.25rem;
             background: transparent;
-            
-            &::placeholder {
-                color: rgba(255, 255, 255, 0.5);
-            }
+        }
+        
+        :deep(.el-input__inner::placeholder) {
+            color: var(--ks-content-secondary);
         }
 
         :deep(.el-input__prefix) {
             margin-right: 0.5rem;
-            .search-icon {
-                font-size: 1rem;
-                color: rgba(255, 255, 255, 0.5);
-            }
+        }
+
+        :deep(.search-icon) {
+            font-size: 1rem;
+            color: var(--ks-content-tertiary);
         }
     }
 
