@@ -178,17 +178,6 @@
                 value: props.metadata.description,
                 label: t("no_code.fields.main.description"),
             },
-            retry: {
-                component: Editor,
-                value: props.metadata.retry,
-                label: t("no_code.fields.general.retry"),
-                navbar: false,
-                input: true,
-                lang: "yaml",
-                shouldFocus: false,
-                showScroll: true,
-                style: {height: "100px"},
-            },
             labels: {
                 component: InputPair,
                 value: props.metadata.labels,
@@ -269,6 +258,7 @@
             errors: NoCodeElement[];
             finally: NoCodeElement[];
             afterExecution: NoCodeElement[];
+            retry: NoCodeElement[];
         }>(flow.value);
         return [
             getSectionTitle("tasks", parsedFlow?.tasks ?? []),
@@ -282,6 +272,7 @@
                 "after_execution",
                 parsedFlow?.afterExecution ?? [],
             ),
+            getSectionTitle("retry", parsedFlow?.retry ?? []),
         ];
     });
 </script>

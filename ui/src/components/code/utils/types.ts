@@ -45,7 +45,6 @@ export type Fields = {
     id: Field;
     namespace: Field;
     description: Field;
-    retry: EditorField;
     labels: PairField;
     inputs: InputField;
     outputs: EditorField;
