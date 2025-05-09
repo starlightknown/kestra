@@ -2,7 +2,7 @@
     <el-collapse class="collapse retry-collapse">
         <el-collapse-item 
             name="retry" 
-            :title="$t('no_code.fields.general.retry')"
+            :title="$t('no_code.sections.retry')"
         >
             <template #icon>
                 <el-button 
@@ -34,13 +34,28 @@
 
     <el-drawer
         v-model="isDrawerOpen"
-        :title="$t('no_code.fields.general.retry')"
+        :title="$t('no_code.sections.retry')"
         direction="rtl"
         size="50%"
         :destroy-on-close="false"
     >
         <div class="retry-form p-4">
             <el-form label-position="top">
+                <!-- Full class name input -->
+                <el-form-item>
+                    <template #label>
+                        <span>{{ $t('class') }}</span>
+                        <el-tag disable-transitions size="small" class="ms-2 type-tag">
+                            string
+                        </el-tag>
+                    </template>
+                    <el-input 
+                        v-model="retryClassname" 
+                        class="w-100" 
+                        disabled
+                    />
+                </el-form-item>
+
                 <el-form-item required>
                     <template #label>
                         <span>{{ $t('type') }}</span>
@@ -48,7 +63,7 @@
                             string
                         </el-tag>
                     </template>
-                    <el-select v-model="retryData.type" class="w-100">
+                    <el-select v-model="retryData.type" class="w-100" @change="updateClassName">
                         <el-option value="constant" :label="$t('constant')" />
                         <el-option value="exponential" :label="$t('exponential')" />
                         <el-option value="random" :label="$t('random')" />
@@ -75,7 +90,7 @@
                             integer
                         </el-tag>
                     </template>
-                    <el-input-number v-model="retryData.maxAttempt" :min="0" class="w-100" />
+                    <el-input-number v-model="retryData.maxAttempt" :min="1" class="w-100" />
                 </el-form-item>
 
                 <el-form-item>
@@ -122,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-    import {ref, computed, watch} from "vue";
+    import {ref, computed, watch, onMounted} from "vue";
     import {YamlUtils as YAML_UTILS} from "@kestra-io/ui-libs";
     import {DeleteOutline, Plus} from "../code/utils/icons";
     import {useI18n} from "vue-i18n";
@@ -194,6 +209,7 @@
             retryData.value = getDefaultValues();
         }
         
+        updateClassName();
         isDrawerOpen.value = true;
     };
 
@@ -246,6 +262,22 @@
         } else if (newValue) {
             retryData.value = {...getDefaultValues(), ...newValue};
         }
+    });
+
+    const retryClassname = ref("");
+
+    const updateClassName = () => {
+        retryClassname.value = `io.kestra.core.models.tasks.retrys.${retryData.value.type.charAt(0).toUpperCase() + retryData.value.type.slice(1)}`;
+    };
+    
+    // Update the class name when opening the form
+    watch(() => retryData.value.type, (_unused) => {
+        updateClassName();
+    });
+    
+    // Initialize the class name on component creation
+    onMounted(() => {
+        updateClassName();
     });
 </script>
 

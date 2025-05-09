@@ -260,6 +260,7 @@
             afterExecution: NoCodeElement[];
             retry: NoCodeElement[];
         }>(flow.value);
+
         return [
             getSectionTitle("tasks", parsedFlow?.tasks ?? []),
             getSectionTitle("triggers", parsedFlow?.triggers ?? []),

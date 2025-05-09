@@ -377,7 +377,7 @@
     "errors": {
       "404": {
         "title": "Page not found",
-        "content": "The requested URL was not found on this server.<br />That’s all we know.",
+        "content": "The requested URL was not found on this server.<br />That's all we know.",
         "flow or execution": "The flow or execution you are looking for does not exist."
       },
       "401": {
@@ -916,7 +916,7 @@
           "content": "\"Execute\" and see your flow in action."
         },
         "6": {
-          "title": "You’re all set!",
+          "title": "You're all set!",
           "content": "Check the Logs and Outputs tabs to track your execution progress.<br /><br />Then, head over to the Flows page to explore other use cases.",
           "primary": "Create a new flow",
           "secondary": "Explore other Flows"
@@ -1178,7 +1178,8 @@
         "triggers": "Triggers",
         "error_handlers": "Error Handlers",
         "finally": "Finally",
-        "after_execution": "After Execution"
+        "after_execution": "After Execution",
+        "retry": "Retry"
       },
       "fields": {
         "main": {
@@ -1203,7 +1204,8 @@
         "triggers": "Add a trigger",
         "error handlers": "Add an error handler",
         "finally": "Add a finally block",
-        "after execution": "Add an after execution block"
+        "after execution": "Add an after execution block",
+        "retry": "Add a retry"
       },
       "save": {
         "tasks": "Save task",
