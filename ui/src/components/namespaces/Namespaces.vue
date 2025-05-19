@@ -200,6 +200,7 @@
 
     .rounded-full {
         border-radius: var(--bs-border-radius-lg);
+        background-color: var(--ks-background-card)
     }
 
     :deep(.el-tree-node__content) {
@@ -209,11 +210,7 @@
         border-radius: var(--bs-border-radius-lg);
 
         &:hover {
-            background: $base-white;
-
-            html.dark & {
-                background: var(--ks-background-body);
-            }
+            background: var(--ks-background-body);
         }
 
         .icon {
