@@ -1302,8 +1302,8 @@
         "content": "Start building Apps to interact with Kestra from the outside world."
       },
       "testSuites": {
-        "title": "You have no Test suites yet!",
-        "content": "Start creating Test suites to test your Flows."
+        "title": "You have no Tests yet!",
+        "content": "Add tests to validate quality and avoid regressions in your flows."
       },
       "concurrency_executions": {
         "title": "No ongoing Executions for this Flow.",
