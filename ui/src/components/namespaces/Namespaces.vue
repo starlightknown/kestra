@@ -209,7 +209,11 @@
         border-radius: var(--bs-border-radius-lg);
 
         &:hover {
-            background: var(--ks-background-body);
+            background: $base-white;
+
+            html.dark & {
+                background: var(--ks-background-body);
+            }
         }
 
         .icon {
