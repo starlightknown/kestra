@@ -308,7 +308,10 @@
     };
     const handleBackspaceKey = () => {
         if (currentFilters.value.length === 0) return;
-        removeItem(currentFilters.value[currentFilters.value.length - 1]);
+        
+        if (!select.value?.states.inputValue) {
+            removeItem(currentFilters.value[currentFilters.value.length - 1]);
+        }
     };
 
     const getInputValue = () => select.value?.states.inputValue;
@@ -320,7 +323,8 @@
 
         if (key === "Enter") return;
 
-        if (currentFilters.value.at(-1)?.label === "user") {
+        if (currentFilters.value.at(-1)?.label === "user" || 
+            currentFilters.value.at(-1)?.label === "labels") {
             emits("input", getInputValue());
         }
 
@@ -680,7 +684,7 @@
 
         if (typeof wholeSearchContent.at(-1) === "string") {
             if (
-                ["details"].includes(wholeSearchContent.at(-2)?.label) ||
+                ["details", "labels"].includes(wholeSearchContent.at(-2)?.label) ||
                 wholeSearchContent.at(-2)?.value?.length === 0
             ) {
                 if (wholeSearchContent.at(-2)?.label === "child") {
