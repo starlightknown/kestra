@@ -9,7 +9,6 @@ import io.kestra.core.models.tasks.Task;
 import io.kestra.core.queues.QueueFactoryInterface;
 import io.kestra.core.queues.QueueInterface;
 import io.kestra.core.runners.RunContext;
-import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.utils.Await;
 import io.kestra.core.utils.TestsUtils;
 import io.kestra.plugin.scripts.exec.scripts.models.DockerOptions;
@@ -24,6 +23,7 @@ import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,7 +53,7 @@ class LogConsumerTest {
        RunContext runContext = TestsUtils.mockRunContext(runContextFactory, TASK, ImmutableMap.of());
         String outputValue = "a".repeat(10000);
         TaskCommands taskCommands = new CommandsWrapper(runContext)
-            .withCommands(Property.of(List.of(
+            .withCommands(Property.ofValue(List.of(
             "/bin/sh", "-c",
             "echo \"::{\\\"outputs\\\":{\\\"someOutput\\\":\\\"" + outputValue + "\\\"}}::\"\n" +
                 "echo -n another line"
@@ -80,7 +80,7 @@ class LogConsumerTest {
                     .append(Integer.toString(i).repeat(800)).append("\r")
                 .append(Integer.toString(i).repeat(2000)).append("\r");
         }
-        TaskCommands taskCommands = new CommandsWrapper(runContext).withCommands(Property.of(List.of(
+        TaskCommands taskCommands = new CommandsWrapper(runContext).withCommands(Property.ofValue(List.of(
             "/bin/sh", "-c",
             "echo " + outputValue +
                 "echo -n another line"
@@ -97,11 +97,11 @@ class LogConsumerTest {
 
     @Test
     void logs() throws Exception {
-        List<LogEntry> logs = new ArrayList<>();
+        List<LogEntry> logs = new CopyOnWriteArrayList<>();
         Flux<LogEntry> receive = TestsUtils.receive(logQueue, l -> logs.add(l.getLeft()));
 
         RunContext runContext = TestsUtils.mockRunContext(runContextFactory, TASK, ImmutableMap.of());
-        TaskCommands taskCommands = new CommandsWrapper(runContext).withCommands(Property.of(List.of(
+        TaskCommands taskCommands = new CommandsWrapper(runContext).withCommands(Property.ofValue(List.of(
             "/bin/sh", "-c",
             """
                 echo '::{"logs": [{"level":"INFO","message":"Hello World"}]}::'

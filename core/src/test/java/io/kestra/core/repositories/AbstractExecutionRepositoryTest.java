@@ -39,7 +39,6 @@ import java.util.*;
 import static io.kestra.core.tenant.TenantService.MAIN_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
@@ -69,17 +68,17 @@ public abstract class AbstractExecutionRepositoryTest {
 
         List<TaskRun> taskRuns = Arrays.asList(
             TaskRun.of(execution.build(), ResolvedTask.of(
-                    Return.builder().id("first").type(Return.class.getName()).format(Property.of("test")).build())
+                    Return.builder().id("first").type(Return.class.getName()).format(Property.ofValue("test")).build())
                 )
                 .withState(State.Type.SUCCESS),
             spyTaskRun(TaskRun.of(execution.build(), ResolvedTask.of(
-                        Return.builder().id("second").type(Return.class.getName()).format(Property.of("test")).build())
+                        Return.builder().id("second").type(Return.class.getName()).format(Property.ofValue("test")).build())
                     )
                     .withState(state),
                 state
             ),
             TaskRun.of(execution.build(), ResolvedTask.of(
-                Return.builder().id("third").type(Return.class.getName()).format(Property.of("test")).build())).withState(state)
+                Return.builder().id("third").type(Return.class.getName()).format(Property.ofValue("test")).build())).withState(state)
         );
 
         if (flowId == null) {
@@ -192,7 +191,7 @@ public abstract class AbstractExecutionRepositoryTest {
                 .build()
         );
         executions = executionRepository.find(Pageable.from(1, 10),  MAIN_TENANT, filters);
-        assertThat(executions.getTotal()).isEqualTo(1L);
+        assertThat(executions.getTotal()).isEqualTo(0L);
 
         filters = List.of(QueryFilter.builder()
             .field(QueryFilter.Field.FLOW_ID)
@@ -816,5 +815,27 @@ public abstract class AbstractExecutionRepositoryTest {
 
         List<Execution> executions = executionRepository.findAllAsync(MAIN_TENANT).collectList().block();
         assertThat(executions).hasSize(29); // used by the backup so it contains TEST executions
+    }
+
+    @Test
+    protected void shouldFindByLabel() {
+        inject();
+
+        List<QueryFilter> filters = List.of(QueryFilter.builder()
+            .field(QueryFilter.Field.LABELS)
+            .operation(QueryFilter.Op.EQUALS)
+            .value(Map.of("key", "value"))
+            .build());
+        List<Execution> executions = executionRepository.find(Pageable.from(1, 10),  MAIN_TENANT, filters);
+        assertThat(executions.size()).isEqualTo(1L);
+
+        // Filtering by two pairs of labels, since now its a and behavior, it should not return anything
+        filters = List.of(QueryFilter.builder()
+            .field(QueryFilter.Field.LABELS)
+            .operation(QueryFilter.Op.EQUALS)
+            .value(Map.of("key", "value", "keyother", "valueother"))
+            .build());
+        executions = executionRepository.find(Pageable.from(1, 10),  MAIN_TENANT, filters);
+        assertThat(executions.size()).isEqualTo(0L);
     }
 }
