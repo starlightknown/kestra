@@ -323,8 +323,7 @@
 
         if (key === "Enter") return;
 
-        if (currentFilters.value.at(-1)?.label === "user" || 
-            currentFilters.value.at(-1)?.label === "labels") {
+        if (currentFilters.value.at(-1)?.label === "user") {
             emits("input", getInputValue());
         }
 
@@ -684,7 +683,7 @@
 
         if (typeof wholeSearchContent.at(-1) === "string") {
             if (
-                ["details", "labels"].includes(wholeSearchContent.at(-2)?.label) ||
+                ["details"].includes(wholeSearchContent.at(-2)?.label) ||
                 wholeSearchContent.at(-2)?.value?.length === 0
             ) {
                 if (wholeSearchContent.at(-2)?.label === "child") {
