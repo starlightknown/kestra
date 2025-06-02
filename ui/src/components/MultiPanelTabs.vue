@@ -1,6 +1,26 @@
 <template>
     <Splitpanes class="default-theme" @resize="onResize">
         <Pane
+            v-if="showLeftDropZone"
+            min-size="5"
+            size="10"
+            class="new-panel-drop-zone left-drop-zone"
+            :class="{'panel-dragover': leftPanelDragover}"
+            @dragover.prevent="leftPanelDragOver"
+            @dragleave.prevent="leftPanelDragLeave"
+            @drop.prevent="(e) => newPanelDrop(e, 'left')"
+        >
+            <div class="new-panel-content">
+                <div class="new-panel-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 7L9 12L14 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+        </Pane>
+
+        <Pane
             v-for="(panel, panelIndex) in panels"
             min-size="10"
             :key="panelIndex"
@@ -124,17 +144,36 @@
                     />
                 </KeepAlive>
                 <div
-                    v-if="dragging"
+                    v-if="realDragging"
                     class="editor-content-overlay"
                     :class="{dragover: panel.dragover}"
                 />
+            </div>
+        </Pane>
+        <Pane
+            v-if="showRightDropZone"
+            min-size="5"
+            size="10"
+            class="new-panel-drop-zone right-drop-zone"
+            :class="{'panel-dragover': rightPanelDragover}"
+            @dragover.prevent="rightPanelDragOver"
+            @dragleave.prevent="rightPanelDragLeave"
+            @drop.prevent="(e) => newPanelDrop(e, 'right')"
+        >
+            <div class="new-panel-content">
+                <div class="new-panel-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 17L15 12L10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
             </div>
         </Pane>
     </Splitpanes>
 </template>
 
 <script lang="ts" setup>
-    import {nextTick, ref, watch, provide} from "vue";
+    import {nextTick, ref, watch, provide, onMounted, onUnmounted, computed} from "vue";
     import {useI18n} from "vue-i18n";
 
     import "splitpanes/dist/splitpanes.css"
@@ -206,6 +245,44 @@
     const dragging = ref(false);
     const tabContainerRefs = ref<HTMLDivElement[]>([]);
     const draggingPanel = ref<number | null>(null);
+    const realDragging = ref(false);
+    const leftPanelDragover = ref(false);
+    const rightPanelDragover = ref(false);
+
+    // Add a mouse position tracker
+    const mousePosition = ref({x: 0, y: 0});
+    const windowWidth = ref(window.innerWidth);
+    
+    // Track mouse position globally
+    function updateMousePosition(e: MouseEvent) {
+        mousePosition.value = {x: e.clientX, y: e.clientY};
+    }
+    
+    // Set up event listener for mouse movement
+    onMounted(() => {
+        window.addEventListener("mousemove", updateMousePosition);
+        window.addEventListener("resize", () => {
+            windowWidth.value = window.innerWidth;
+        });
+    });
+    
+    onUnmounted(() => {
+        window.removeEventListener("mousemove", updateMousePosition);
+        window.removeEventListener("resize", () => {});
+    });
+    
+    // Computed properties to determine which drop zone should be visible
+    const showLeftDropZone = computed(() => 
+        realDragging.value && 
+        movedTabInfo.value && 
+        !draggingPanel.value
+    );
+    
+    const showRightDropZone = computed(() => 
+        realDragging.value && 
+        movedTabInfo.value && 
+        !draggingPanel.value
+    );
 
     function onResize(e: {size:number}[]) {
         let i = 0;
@@ -222,7 +299,10 @@
 
     function cleanUp(){
         dragging.value = false;
+        realDragging.value = false;
         mouseXRef.value = -1;
+        leftPanelDragover.value = false;
+        rightPanelDragover.value = false;
         nextTick(() => {
             movedTabInfo.value = null
             for(const panel of panels.value) {
@@ -244,6 +324,12 @@
     }
 
     function dragover(e: DragEvent) {
+        // Ensure we set the realDragging flag when a drag operation is in progress
+        if (movedTabInfo.value) {
+            realDragging.value = true;
+            dragging.value = true;
+        }
+
         // if mouse has not moved vertically, stop the processing
         // this will be triggered every few ms so perf and readability will be paramount
         if(mouseXRef.value === e.clientX){
@@ -323,7 +409,6 @@
             return
         }
 
-        // find potential tab in panels.value tabs
         const potentialTabPanelIndex = panels.value.findIndex((panel) => panel.tabs.some((tab) => tab.potential));
         const potentialTabId = panels.value[potentialTabPanelIndex]?.tabs.find((tab) => tab.potential)?.value;
 
@@ -379,6 +464,49 @@
             // add the tab to the target panel in-place of the hovered potential tab
             panels.value[targetPanelIndex].tabs.splice(targetTabIndex + 1, 0, movedTab);
         }
+    }
+
+    function newPanelDrop(e: DragEvent, direction: "left" | "right") {
+        if (!movedTabInfo.value) return;
+        
+        const {tab: movedTab} = movedTabInfo.value;
+        
+        // Create a new panel with the dragged tab
+        const newPanel = {
+            tabs: [movedTab],
+            activeTab: movedTab
+        };
+        
+        // Add the new panel based on the drop direction, not relative to original panel
+        if (direction === "left") {
+            panels.value.splice(0, 0, newPanel);
+        } else {
+            panels.value.push(newPanel);
+        }
+        
+        // Remove the tab from the original panel
+        // After adding the new panel, the original panel's index may have changed
+        // Find it again by looking for the tab in all panels
+        for (let i = 0; i < panels.value.length; i++) {
+            const panel = panels.value[i];
+            const tabIndex = panel.tabs.findIndex(t => t.value === movedTab.value);
+            
+            if (i === 0 && direction === "left") continue;
+            if (i === panels.value.length - 1 && direction === "right") continue;
+            
+            if (tabIndex !== -1) {
+                panel.tabs.splice(tabIndex, 1);
+                
+                if (panel.activeTab.value === movedTab.value && panel.tabs.length > 0) {
+                    panel.activeTab = tabIndex > 0
+                        ? panel.tabs[tabIndex - 1]
+                        : panel.tabs[0];
+                }
+                break;
+            }
+        }
+        
+        cleanUp();
     }
 
     function closeAllTabs(panelIndex: number){
@@ -462,6 +590,28 @@
         const [movedPanel] = panelsCopy.splice(panelIndex, 1);
         panelsCopy.splice(newIndex, 0, movedPanel);
         panels.value = panelsCopy;
+    }
+
+    function rightPanelDragOver() {
+        if (!movedTabInfo.value) return;
+        rightPanelDragover.value = true;
+        leftPanelDragover.value = false;
+        removeAllPotentialTabs();
+    }
+
+    function rightPanelDragLeave() {
+        rightPanelDragover.value = false;
+    }
+
+    function leftPanelDragOver() {
+        if (!movedTabInfo.value) return;
+        leftPanelDragover.value = true;
+        rightPanelDragover.value = false;
+        removeAllPotentialTabs();
+    }
+
+    function leftPanelDragLeave() {
+        leftPanelDragover.value = false;
     }
 </script>
 
@@ -620,4 +770,58 @@
         transition: background-color 0.2s ease;
     }
 
+    .new-panel-drop-zone {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(30, 30, 30, 0.5);
+        transition: all 0.2s ease;
+        border: 2px dashed var(--ks-border-primary, #444);
+        border-radius: 4px;
+        margin: 4px;
+    }
+    
+    .new-panel-drop-zone:hover,
+    .new-panel-drop-zone.panel-dragover {
+        background-color: rgba(40, 40, 40, 0.8);
+        border-color: var(--ks-border-active, #888);
+    }
+    
+    .left-drop-zone {
+        border-right-width: 2px;
+        margin-right: 8px;
+    }
+    
+    .right-drop-zone {
+        border-left-width: 2px;
+        margin-left: 8px;
+    }
+
+    .new-panel-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .new-panel-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+    
+    .new-panel-drop-zone:hover .new-panel-icon,
+    .new-panel-drop-zone.panel-dragover .new-panel-icon {
+        opacity: 1;
+    }
+    
+    .new-panel-icon svg {
+        filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+    }
 </style>
