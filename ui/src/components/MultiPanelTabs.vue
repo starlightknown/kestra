@@ -1,7 +1,7 @@
 <template>
     <Splitpanes class="default-theme" @resize="onResize">
         <Pane
-            v-if="showLeftDropZone"
+            v-if="showDropZones"
             min-size="5"
             size="10"
             class="new-panel-drop-zone left-drop-zone"
@@ -151,7 +151,7 @@
             </div>
         </Pane>
         <Pane
-            v-if="showRightDropZone"
+            v-if="showDropZones"
             min-size="5"
             size="10"
             class="new-panel-drop-zone right-drop-zone"
@@ -173,7 +173,7 @@
 </template>
 
 <script lang="ts" setup>
-    import {nextTick, ref, watch, provide, onMounted, onUnmounted, computed} from "vue";
+    import {nextTick, ref, watch, provide, computed} from "vue";
     import {useI18n} from "vue-i18n";
 
     import "splitpanes/dist/splitpanes.css"
@@ -249,36 +249,7 @@
     const leftPanelDragover = ref(false);
     const rightPanelDragover = ref(false);
 
-    // Add a mouse position tracker
-    const mousePosition = ref({x: 0, y: 0});
-    const windowWidth = ref(window.innerWidth);
-    
-    // Track mouse position globally
-    function updateMousePosition(e: MouseEvent) {
-        mousePosition.value = {x: e.clientX, y: e.clientY};
-    }
-    
-    // Set up event listener for mouse movement
-    onMounted(() => {
-        window.addEventListener("mousemove", updateMousePosition);
-        window.addEventListener("resize", () => {
-            windowWidth.value = window.innerWidth;
-        });
-    });
-    
-    onUnmounted(() => {
-        window.removeEventListener("mousemove", updateMousePosition);
-        window.removeEventListener("resize", () => {});
-    });
-    
-    // Computed properties to determine which drop zone should be visible
-    const showLeftDropZone = computed(() => 
-        realDragging.value && 
-        movedTabInfo.value && 
-        !draggingPanel.value
-    );
-    
-    const showRightDropZone = computed(() => 
+    const showDropZones = computed(() => 
         realDragging.value && 
         movedTabInfo.value && 
         !draggingPanel.value
