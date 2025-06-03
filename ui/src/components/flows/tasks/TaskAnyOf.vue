@@ -58,14 +58,19 @@
         created() {
             this.schemas = this.schema?.anyOf ?? [];
 
-            const schema = this.schemaOptions.find((item) =>
-                typeof item.value === this.modelValue?.type ||
-                (this.modelValue === "string" && item.value === "string") ||
-                (this.modelValue === "number" && item.value === "integer") ||
-                (Array.isArray(this.modelValue) && item.value === "array"),
-            );
+            // Only set a selected schema if there's already a model value
+            if (this.modelValue) {
+                const schema = this.schemaOptions.find((item) =>
+                    typeof item.value === this.modelValue?.type ||
+                    (this.modelValue === "string" && item.value === "string") ||
+                    (this.modelValue === "number" && item.value === "integer") ||
+                    (Array.isArray(this.modelValue) && item.value === "array"),
+                );
 
-            this.onSelectType(schema?.value || this.schemaOptions[0]?.value);
+                if (schema) {
+                    this.onSelectType(schema.value);
+                }
+            }
         },
         mounted() {
             this.$nextTick(() => {
@@ -123,7 +128,7 @@
                 this.onInput(value);
             },
             resetSelectType() {
-                this.selectedSchema = this.schemaOptions[0]?.value;
+                this.selectedSchema = undefined;
                 this.$nextTick(() => {
                     this.onInput(undefined);
                 });
