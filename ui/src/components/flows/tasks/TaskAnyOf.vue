@@ -58,7 +58,6 @@
         created() {
             this.schemas = this.schema?.anyOf ?? [];
 
-            // Only set a selected schema if there's already a model value
             if (this.modelValue) {
                 const schema = this.schemaOptions.find((item) =>
                     typeof item.value === this.modelValue?.type ||
