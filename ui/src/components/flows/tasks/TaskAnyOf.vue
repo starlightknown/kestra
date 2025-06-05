@@ -73,9 +73,8 @@
                 this.selectedSchema = this.schemas[0].type;
             }
 
-                if (schema) {
-                    this.onSelectType(schema.value);
-                }
+            if (schema) {
+                this.onSelectType(schema.value);
             }
         },
         mounted() {
