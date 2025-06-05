@@ -59,13 +59,19 @@
         created() {
             this.schemas = this.schema?.anyOf ?? [];
 
-            if (this.modelValue) {
-                const schema = this.schemaOptions.find((item) =>
-                    typeof item.value === this.modelValue?.type ||
-                    (this.modelValue === "string" && item.value === "string") ||
-                    (this.modelValue === "number" && item.value === "integer") ||
-                    (Array.isArray(this.modelValue) && item.value === "array"),
-                );
+            const schema = this.schemaOptions.find((item) =>
+                typeof item.value === this.modelValue?.type ||
+                (typeof this.modelValue === "string" && item.value === "string") ||
+                (typeof this.modelValue === "number" && item.value === "integer") ||
+                (Array.isArray(this.modelValue) && item.value === "array"),
+            );
+
+            this.selectedSchema = schema?.value;
+            
+            // only default selector to required values 
+            if(!this.selectedSchema && this.schemas.length > 0 && this.required) {
+                this.selectedSchema = this.schemas[0].type;
+            }
 
                 if (schema) {
                     this.onSelectType(schema.value);
