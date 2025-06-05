@@ -220,7 +220,7 @@
                         values = [values];
                     }
 
-                    return values.map(value => (queryRemapper?.[filterKey] ?? filterKey) + maybeSubKeyString + getComparator(comparator as Parameters<typeof getComparator>[0]) + value);
+                    return values.map(value => (queryRemapper?.[filterKey] ?? filterKey) + maybeSubKeyString + getComparator(comparator as Parameters<typeof getComparator>[0]) + (value!.includes(" ") ? `"${value}"` : value));
                 })
                 .join(" ");
         }
@@ -243,10 +243,10 @@
             return {};
         }
 
-        const KEY_MATCHER = "((?:(?!" + COMPARATORS_REGEX + ")\\S)+?)";
+        const KEY_MATCHER = "((?:(?!" + COMPARATORS_REGEX + ")(?:\\S|\"[^\"]*\"))+?)";
         const COMPARATOR_MATCHER = "(" + COMPARATORS_REGEX + ")";
         const MAYBE_PREVIOUS_VALUE = "(?:(?<=\\S),)?";
-        const VALUE_MATCHER = "((?:" + MAYBE_PREVIOUS_VALUE + "(?:(?:\"[^\\n,]*\")|(?:[^\\s,]*)))+)";
+        const VALUE_MATCHER = "((?:" + MAYBE_PREVIOUS_VALUE + "(?:(?:\"[^\"]*\")|(?:[^\\s,]*)))+)";
         const filterMatcher = new RegExp("\\s*(?<!\\S)" +
             "((?:" + KEY_MATCHER + COMPARATOR_MATCHER + VALUE_MATCHER + ")" +
             "|\"([^\"]*)\"" +
@@ -259,7 +259,7 @@
 
             // If we're not in a {key}{comparator}{value} format, we assume it's a text search
             if (key === undefined) {
-                if (text === undefined || !props.language?.keyMatchers()?.some(keyMatcher => keyMatcher.test(text))) {
+                if (props.language?.textFilterSupported && (text === undefined || !props.language?.keyMatchers()?.some(keyMatcher => keyMatcher.test(text)))) {
                     filters.push({
                         key: "text",
                         comparator: "EQUALS",
@@ -310,7 +310,7 @@
                 if (key.includes(".")) {
                     const keyAndSubKeyMatch = queryKey.match(/([^.]+)\.([^.]+)/);
                     const rootKey = keyAndSubKeyMatch?.[1];
-                    const subKey = keyAndSubKeyMatch?.[2];
+                    const subKey = keyAndSubKeyMatch?.[2].replace(/^"([^"]*)"$/, "$1");
                     if (rootKey === undefined || subKey === undefined) {
                         return [];
                     }
@@ -452,7 +452,7 @@
                 ...filterQueryString.value
             }
         });
-    }, {immediate: true, debounce: 500});
+    }, {immediate: true, debounce: 1000});
 </script>
 
 <style lang="scss" scoped>

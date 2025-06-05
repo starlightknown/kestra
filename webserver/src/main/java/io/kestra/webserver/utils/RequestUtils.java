@@ -148,7 +148,7 @@ public class RequestUtils {
         if (namespace != null) {
             filters.add(QueryFilter.builder()
                 .field(QueryFilter.Field.NAMESPACE)
-                .operation(QueryFilter.Op.NAMESPACE_PREFIX)
+                .operation(QueryFilter.Op.PREFIX)
                 .value(namespace)
                 .build());
         }
