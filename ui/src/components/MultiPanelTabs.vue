@@ -1,26 +1,6 @@
 <template>
     <Splitpanes class="default-theme" @resize="onResize">
         <Pane
-            v-if="showDropZones"
-            min-size="5"
-            size="10"
-            class="new-panel-drop-zone left-drop-zone"
-            :class="{'panel-dragover': leftPanelDragover}"
-            @dragover.prevent="leftPanelDragOver"
-            @dragleave.prevent="leftPanelDragLeave"
-            @drop.prevent="(e) => newPanelDrop(e, 'left')"
-        >
-            <div class="new-panel-content">
-                <div class="new-panel-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 7L9 12L14 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
-                    </svg>
-                </div>
-            </div>
-        </Pane>
-
-        <Pane
             v-for="(panel, panelIndex) in panels"
             min-size="10"
             :key="panelIndex"
@@ -150,10 +130,30 @@
                 />
             </div>
         </Pane>
-        <Pane
-            v-if="showDropZones"
-            min-size="5"
-            size="10"
+    </Splitpanes>
+    
+    <div 
+        v-if="showDropZones" 
+        class="absolute-drop-zones-container"
+    >
+        <div
+            class="new-panel-drop-zone left-drop-zone"
+            :class="{'panel-dragover': leftPanelDragover}"
+            @dragover.prevent="leftPanelDragOver"
+            @dragleave.prevent="leftPanelDragLeave"
+            @drop.prevent="(e) => newPanelDrop(e, 'left')"
+        >
+            <div class="new-panel-content">
+                <div class="new-panel-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 7L9 12L14 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div
             class="new-panel-drop-zone right-drop-zone"
             :class="{'panel-dragover': rightPanelDragover}"
             @dragover.prevent="rightPanelDragOver"
@@ -168,8 +168,8 @@
                     </svg>
                 </div>
             </div>
-        </Pane>
-    </Splitpanes>
+        </div>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -741,7 +741,21 @@
         transition: background-color 0.2s ease;
     }
 
+    .absolute-drop-zones-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+    }
+    
     .new-panel-drop-zone {
+        position: relative;
+        width: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -749,7 +763,9 @@
         transition: all 0.2s ease;
         border: 2px dashed var(--ks-border-primary, #444);
         border-radius: 4px;
-        margin: 4px;
+        margin: 8px;
+        pointer-events: auto;
+        height: calc(100% - 16px);
     }
     
     .new-panel-drop-zone:hover,
@@ -760,12 +776,10 @@
     
     .left-drop-zone {
         border-right-width: 2px;
-        margin-right: 8px;
     }
     
     .right-drop-zone {
         border-left-width: 2px;
-        margin-left: 8px;
     }
 
     .new-panel-content {
