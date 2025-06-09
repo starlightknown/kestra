@@ -784,7 +784,6 @@
 
     .new-panel-content {
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         width: 100%;
@@ -795,8 +794,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100%;
-        height: 100%;
         opacity: 0.7;
         transition: opacity 0.2s ease;
     }
@@ -804,9 +801,5 @@
     .new-panel-drop-zone:hover .new-panel-icon,
     .new-panel-drop-zone.panel-dragover .new-panel-icon {
         opacity: 1;
-    }
-    
-    .new-panel-icon svg {
-        filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
     }
 </style>
