@@ -124,7 +124,7 @@
                     />
                 </KeepAlive>
                 <div
-                    v-if="realDragging"
+                    v-if="dragging"
                     class="editor-content-overlay"
                     :class="{dragover: panel.dragover}"
                 />
@@ -380,6 +380,7 @@
             return
         }
 
+        // find potential tab in panels.value tabs
         const potentialTabPanelIndex = panels.value.findIndex((panel) => panel.tabs.some((tab) => tab.potential));
         const potentialTabId = panels.value[potentialTabPanelIndex]?.tabs.find((tab) => tab.potential)?.value;
 
