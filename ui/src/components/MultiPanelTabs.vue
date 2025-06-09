@@ -124,7 +124,7 @@
                     />
                 </KeepAlive>
                 <div
-                    v-if="realDragging"
+                    v-if="dragging"
                     class="editor-content-overlay"
                     :class="{dragover: panel.dragover}"
                 />
