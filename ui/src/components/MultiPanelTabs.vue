@@ -124,7 +124,7 @@
                     />
                 </KeepAlive>
                 <div
-                    v-if="dragging"
+                    v-if="realDragging"
                     class="editor-content-overlay"
                     :class="{dragover: panel.dragover}"
                 />
@@ -142,16 +142,7 @@
             @dragover.prevent="leftPanelDragOver"
             @dragleave.prevent="leftPanelDragLeave"
             @drop.prevent="(e) => newPanelDrop(e, 'left')"
-        >
-            <div class="new-panel-content">
-                <div class="new-panel-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 7L9 12L14 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
-                    </svg>
-                </div>
-            </div>
-        </div>
+        />
         
         <div
             class="new-panel-drop-zone right-drop-zone"
@@ -159,16 +150,7 @@
             @dragover.prevent="rightPanelDragOver"
             @dragleave.prevent="rightPanelDragLeave"
             @drop.prevent="(e) => newPanelDrop(e, 'right')"
-        >
-            <div class="new-panel-content">
-                <div class="new-panel-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 17L15 12L10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
-                    </svg>
-                </div>
-            </div>
-        </div>
+        />
     </div>
 </template>
 
@@ -783,24 +765,5 @@
         border-left-width: 2px;
     }
 
-    .new-panel-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
-    
-    .new-panel-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
-    }
-    
-    .new-panel-drop-zone:hover .new-panel-icon,
-    .new-panel-drop-zone.panel-dragover .new-panel-icon {
-        opacity: 1;
-    }
+
 </style>
