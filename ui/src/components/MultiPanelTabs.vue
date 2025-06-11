@@ -1,5 +1,5 @@
 <template>
-    <Splitpanes class="default-theme" @resize="onResize">
+    <Splitpanes class="default-theme" :class="props.class" @resize="onResize">
         <Pane
             v-for="(panel, panelIndex) in panels"
             min-size="10"
@@ -132,9 +132,9 @@
             </div>
         </Pane>
     </Splitpanes>
-    
-    <div 
-        v-if="showDropZones" 
+
+    <div
+        v-if="showDropZones"
         class="absolute-drop-zones-container"
     >
         <div
@@ -144,7 +144,7 @@
             @dragleave.prevent="leftPanelDragLeave"
             @drop.prevent="(e) => newPanelDrop(e, 'left')"
         />
-        
+
         <div
             class="new-panel-drop-zone right-drop-zone"
             :class="{'panel-dragover': rightPanelDragover}"
@@ -186,6 +186,10 @@
             }
         }
     }
+
+    const props = defineProps<{
+        "class"?: string,
+    }>()
 
     export interface Tab {
         button: {
@@ -232,9 +236,9 @@
     const leftPanelDragover = ref(false);
     const rightPanelDragover = ref(false);
 
-    const showDropZones = computed(() => 
-        realDragging.value && 
-        movedTabInfo.value && 
+    const showDropZones = computed(() =>
+        realDragging.value &&
+        movedTabInfo.value &&
         !draggingPanel.value
     );
 
@@ -423,35 +427,35 @@
 
     function newPanelDrop(e: DragEvent, direction: "left" | "right") {
         if (!movedTabInfo.value) return;
-        
+
         const {tab: movedTab} = movedTabInfo.value;
-        
+
         // Create a new panel with the dragged tab
         const newPanel = {
             tabs: [movedTab],
             activeTab: movedTab
         };
-        
+
         // Add the new panel based on the drop direction, not relative to original panel
         if (direction === "left") {
             panels.value.splice(0, 0, newPanel);
         } else {
             panels.value.push(newPanel);
         }
-        
+
         // Remove the tab from the original panel
         // After adding the new panel, the original panel's index may have changed
         // Find it again by looking for the tab in all panels
         for (let i = 0; i < panels.value.length; i++) {
             const panel = panels.value[i];
             const tabIndex = panel.tabs.findIndex(t => t.value === movedTab.value);
-            
+
             if (i === 0 && direction === "left") continue;
             if (i === panels.value.length - 1 && direction === "right") continue;
-            
+
             if (tabIndex !== -1) {
                 panel.tabs.splice(tabIndex, 1);
-                
+
                 if (panel.activeTab.value === movedTab.value && panel.tabs.length > 0) {
                     panel.activeTab = tabIndex > 0
                         ? panel.tabs[tabIndex - 1]
@@ -460,7 +464,7 @@
                 break;
             }
         }
-        
+
         cleanUp();
     }
 
@@ -744,7 +748,7 @@
         display: flex;
         justify-content: space-between;
     }
-    
+
     .new-panel-drop-zone {
         position: relative;
         width: 60px;
@@ -759,17 +763,17 @@
         pointer-events: auto;
         height: calc(100% - 16px);
     }
-    
+
     .new-panel-drop-zone:hover,
     .new-panel-drop-zone.panel-dragover {
         background-color: rgba(40, 40, 40, 0.8);
         border-color: var(--ks-border-active, #888);
     }
-    
+
     .left-drop-zone {
         border-right-width: 2px;
     }
-    
+
     .right-drop-zone {
         border-left-width: 2px;
     }
