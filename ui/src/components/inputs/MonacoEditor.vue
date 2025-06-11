@@ -12,24 +12,14 @@
                 @keydown.esc.prevent="editorResolved.focus()"
                 @keydown.enter.prevent="datePickerCallback"
                 :clearable="false"
+                class="z-3"
             />
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-    import {
-        computed,
-        getCurrentInstance,
-        h,
-        inject,
-        onBeforeUnmount,
-        onMounted,
-        ref,
-        render,
-        VNode,
-        watch
-    } from "vue";
+    import {computed, getCurrentInstance, h, inject, onBeforeUnmount, onMounted, ref, render, VNode, watch} from "vue";
     import {useStore} from "vuex";
 
     import "monaco-editor/esm/vs/editor/editor.all.js";
@@ -54,7 +44,9 @@
     import {ElDatePicker} from "element-plus";
     import {Moment} from "moment";
     import PlaceholderContentWidget from "../../composables/monaco/PlaceholderContentWidget.ts";
+    import {hashCode} from "../../utils/global.ts";
     import ICodeEditor = editor.ICodeEditor;
+    import debounce from "lodash/debounce";
 
     const store = useStore();
     const currentInstance = getCurrentInstance()!;
@@ -134,6 +126,7 @@
         creating?: boolean,
         suggestionsOnFocus?: boolean,
         readonly?: boolean,
+        largeSuggestions?: boolean,
         placeholder?: string,
     }>(), {
         path: "",
@@ -147,6 +140,7 @@
         options: undefined,
         schemaType: undefined,
         suggestionsOnFocus: false,
+        largeSuggestions: true,
         placeholder: undefined,
     })
 
@@ -154,31 +148,35 @@
         monaco.editor.defineTheme(themeKey, themeData);
     });
 
-    const themeKey = computed(() => {
-        if (typeof props.theme === "string") {
-            return props.theme;
-        }
-
-        return JSON.stringify(props.theme).hashCode();
-    });
-
-    if (typeof props.theme === "object") {
-        const kestraBaseTheme = themes[props.theme.base];
+    function defineCustomTheme(theme: Omit<Partial<editor.IStandaloneThemeData>, "base"> & { base: ThemeBase }) {
+        const kestraBaseTheme = themes[theme.base];
         const base: Partial<editor.IStandaloneThemeData> & { base: editor.BuiltinTheme } = kestraBaseTheme
             ? {
                 ...kestraBaseTheme,
-                ...props.theme,
-                rules: [...(kestraBaseTheme.rules ?? []), ...(props.theme.rules ?? [])],
+                ...theme,
+                rules: [...(kestraBaseTheme.rules ?? []), ...(theme.rules ?? [])],
                 base: kestraBaseTheme.base
             }
-            : props.theme as Partial<editor.IStandaloneThemeData> & { base: editor.BuiltinTheme };
-        monaco.editor.defineTheme(themeKey.value, {
+            : theme as Partial<editor.IStandaloneThemeData> & { base: editor.BuiltinTheme };
+
+        const themeId = hashCode(JSON.stringify(theme)).toString();
+        monaco.editor.defineTheme(themeId, {
             inherit: true,
             rules: [],
             colors: {},
             ...base
         });
+
+        return themeId;
     }
+
+    const themeKey = computed(() => {
+        if (typeof props.theme === "string") {
+            return props.theme;
+        }
+
+        return defineCustomTheme(props.theme);
+    });
 
     let localEditor: monaco.editor.IStandaloneCodeEditor | null = null;
     let localDiffEditor: monaco.editor.IStandaloneDiffEditor | null = null;
@@ -233,11 +231,19 @@
         }
     });
 
-    watch(themeKey, (newVal) => {
-        if (editorResolved.value) {
-            monaco.editor.setTheme(newVal);
+    watch(() => props.theme, (newTheme) => {
+        if (typeof newTheme === "object") {
+            const themeId = defineCustomTheme(newTheme);
+
+            if (editorResolved.value) {
+                monaco.editor.setTheme(themeId);
+            }
+        } else if (typeof newTheme === "string") {
+            if (editorResolved.value) {
+                monaco.editor.setTheme(newTheme);
+            }
         }
-    });
+    }, {deep: true});
 
     const nowMoment: Moment = currentInstance.appContext.config.globalProperties.$moment().startOf("day");
 
@@ -287,7 +293,7 @@
             node.querySelector(`.${KESTRA_ICON_WRAPPER_CLASS}`)?.remove();
 
             if (completionValue.includes(".") && !completionValue.includes("{")) {
-                if (store.state.plugin.icons[completionValue] !== undefined) {
+                if (store.state.plugin?.icons?.[completionValue] !== undefined) {
                     replaceRowIcon(vsCodeIcon, h(TaskIcon, {
                         cls: completionValue,
                         "only-icon": true,
@@ -448,6 +454,12 @@
         (window as any).clearEditor = () => {
             localEditor?.getModel()?.setValue("")
         };
+        (window as any).acceptSuggestion = () => {
+            localEditor?.trigger("acceptSelectedSuggestion", "acceptSelectedSuggestion", {});
+        };
+        (window as any).nextSuggestion = () => {
+            localEditor?.trigger("selectNextSuggestion", "selectNextSuggestion", {});
+        };
     })
 
     onBeforeUnmount(function () {
@@ -456,10 +468,6 @@
 
     function disposeObservers() {
         const swio = suggestWidgetResizeObserver.value
-        if (swio !== undefined) {
-            swio!.disconnect();
-            suggestWidgetResizeObserver.value = undefined;
-        }
         if (swio !== undefined) {
             swio!.disconnect();
             suggestWidgetResizeObserver.value = undefined;
@@ -489,6 +497,9 @@
             addedNodes
         }]) => {
             const simulateResizeOnSashAndDisconnect = (resizer: HTMLElement) => {
+                // If the prop value is passed as false, we don't want to resize the suggest widget
+                if(!props.largeSuggestions) return;
+
                 suggestWidgetResizeObserver.value?.disconnect();
                 suggestWidgetResizeObserver.value = undefined;
 
@@ -641,6 +652,13 @@
                         localEditor!.trigger("refreshSuggestionsAfterUndoRedo", "editor.action.triggerSuggest", {});
                     }
                 });
+
+                localEditor.onDidChangeCursorPosition(debounce(() => {
+                    if (suggestController.model.state !== 0) {
+                        suggestController.cancelSuggestWidget();
+                        localEditor!.trigger("refreshSuggestionsOnCursorMove", "editor.action.triggerSuggest", {});
+                    }
+                }, 300))
             }
 
             if (!props.input) {

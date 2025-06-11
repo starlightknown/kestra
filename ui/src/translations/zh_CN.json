@@ -325,6 +325,12 @@
       "tenants": {
         "message": "Kestra 企业版支持多租户，为不同的团队或项目提供完全隔离的环境，每个环境都有自己的资源，如专用的worker组、密钥和内部存储后端。",
         "title": "在独立的tenant中管理工作流"
+      },
+      "tests": {
+        "header": "Flows的单元测试",
+        "label": "测试",
+        "message": "验证您的flow逻辑是否独立，及早检测回归，并在自动化变更和增长时保持信心。",
+        "title": "确保每次更改的可靠性"
       }
     },
     "dependencies": "依赖关系",
@@ -366,6 +372,7 @@
       "comment_uncomment": "注释/取消注释",
       "decrease_fontsize": "减少字体大小",
       "duplicate_cursor": "复制光标",
+      "execute_flow": "执行 flow",
       "fold_unfold": "折叠/展开代码",
       "increase_fontsize": "增加字体大小",
       "label": "键盘快捷键",
@@ -813,6 +820,7 @@
     "no_code": {
       "adding": "+ 添加{what}",
       "adding_default": "+ 添加新value",
+      "clearSelection": "清除选择",
       "close": {
         "afterExecution": "执行任务后关闭",
         "conditions": "关闭条件",
@@ -876,6 +884,7 @@
         "tasks": "选择一个task",
         "triggers": "选择一个trigger"
       },
+      "toggle_pebble": "切换Pebble编辑器",
       "unnamed": "无名称"
     },
     "no_data": "看起来这里还没有内容……<br/>调整您的过滤器，或者再试一次！",
@@ -989,7 +998,8 @@
     "plugins": {
       "name": "插件",
       "names": "插件",
-      "please": "请选择右侧的一个任务以查看其文档"
+      "please": "请选择右侧的一个任务以查看其文档",
+      "release": "发行说明"
     },
     "port": "端口",
     "prefill inputs": "预填",

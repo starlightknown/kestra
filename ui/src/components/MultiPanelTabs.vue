@@ -47,6 +47,7 @@
                             @dragleave.prevent
                             :data-tab-id="tab.value"
                             @click="panel.activeTab = tab"
+                            @mouseup="middleMouseClose($event, panelIndex, tab)"
                         >
                             <component :is="tab.button.icon" class="tab-icon" />
                             {{ tab.button.label }}
@@ -566,6 +567,14 @@
 
     function leftPanelDragLeave() {
         leftPanelDragover.value = false;
+    }
+
+    function middleMouseClose(event:MouseEvent, panelIndex:number, tab: Tab) {
+        // Middle mouse button
+        if (event.button === 1) {
+            event.preventDefault();
+            destroyTab(panelIndex, tab);
+        }
     }
 </script>
 

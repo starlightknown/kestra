@@ -142,9 +142,12 @@
 
     const {setupInitialCodeTab} = useInitialCodeTabs()
 
+    const isTourRunning = computed(() => store.state.core.guidedProperties?.tourStarted)
+    const DEAFULT_TABS = isTourRunning.value ? ["code", "topology"] : DEFAULT_ACTIVE_TABS
+
     const panels: Ref<Panel[]> = useStorage<any>(
         `panel-${flow.value.namespace}-${flow.value.id}`,
-        DEFAULT_ACTIVE_TABS
+        DEAFULT_TABS
             .map((t):Panel => getPanelFromValue(t).panel),
         undefined,
         {

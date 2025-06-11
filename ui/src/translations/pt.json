@@ -325,6 +325,12 @@
       "tenants": {
         "message": "A Kestra Enterprise Edition suporta multi-tenancy, proporcionando ambientes totalmente isolados para diferentes equipes ou projetos, cada um com seus próprios recursos, como grupos de worker dedicados ou segredos e backends de armazenamento interno.",
         "title": "Gerenciar Fluxos de Trabalho em Tenants Isolados"
+      },
+      "tests": {
+        "header": "Testes Unitários para Flows",
+        "label": "Testes",
+        "message": "Verifique a lógica dos seus flows isoladamente, detecte regressões cedo e mantenha a confiança nas suas automações à medida que elas mudam e crescem.",
+        "title": "Garanta a Confiabilidade com Cada Alteração"
       }
     },
     "dependencies": "Dependências",
@@ -366,6 +372,7 @@
       "comment_uncomment": "Comentar/Descomentar",
       "decrease_fontsize": "Diminuir tamanho da fonte",
       "duplicate_cursor": "Duplicar cursor",
+      "execute_flow": "Executar flow",
       "fold_unfold": "Dobra/Desdobra código",
       "increase_fontsize": "Aumentar tamanho da fonte",
       "label": "Atalhos de teclado",
@@ -813,6 +820,7 @@
     "no_code": {
       "adding": "+ Adicionar um {what}",
       "adding_default": "+ Adicionar um novo value",
+      "clearSelection": "Limpar seleção",
       "close": {
         "afterExecution": "Fechar após execução da task",
         "conditions": "Condição de fechamento",
@@ -876,6 +884,7 @@
         "tasks": "Selecione uma task",
         "triggers": "Selecione um trigger"
       },
+      "toggle_pebble": "Alternar editor Pebble",
       "unnamed": "Sem Nome"
     },
     "no_data": "Parece que não há nada aqui... ainda!<br/>Ajuste seus filtros ou tente novamente!",
@@ -989,7 +998,8 @@
     "plugins": {
       "name": "Plugin",
       "names": "Plugins",
-      "please": "Por favor, escolha uma task à direita para ver sua documentação"
+      "please": "Por favor, escolha uma task à direita para ver sua documentação",
+      "release": "Notas de lançamento"
     },
     "port": "Port",
     "prefill inputs": "Preencher automaticamente",

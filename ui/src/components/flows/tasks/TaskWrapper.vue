@@ -1,25 +1,26 @@
 <template>
-    <div :class="{'schema-wrapper': true, bordered: !merge}">
+    <div class="schema-wrapper" :class="{bordered: !merge}">
         <slot name="tasks" />
     </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
     defineOptions({name: "TaskWrapper"});
 
-    defineProps({merge: {type: Boolean, default: false}});
+    defineProps<{merge?: boolean}>();
 </script>
 
 <style lang="scss" scoped>
 .schema-wrapper {
     width: 100%;
-    padding: 1rem;
+    padding-bottom: 1rem;
     border-radius: 8px;
-    margin: 1rem 0;
-    background: var(--ks-background-box);
 }
 .bordered {
+    background: var(--ks-background-box);
     border: 1px solid var(--ks-border-secondary);
     box-shadow: 0 0 0 1px var(--ks-border-primary) inset;
+    margin: 1rem 0;
+    padding: 1rem;
 }
 </style>

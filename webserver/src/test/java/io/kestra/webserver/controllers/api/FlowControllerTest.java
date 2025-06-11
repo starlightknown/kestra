@@ -172,12 +172,33 @@ class FlowControllerTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void searchFlowsMatch() {
+        PagedResults<Flow> flows = client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[q][EQUALS]=io.kestra.tests2"), Argument.of(PagedResults.class, Flow.class));
+        assertThat(flows.getTotal()).isEqualTo(1L);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void searchFlowsNotEqualsQuery() {
+        PagedResults<Flow> flows = client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[q][NOT_EQUALS]=io.kestra.tests2"), Argument.of(PagedResults.class, Flow.class));
+        assertThat(flows.getTotal()).isEqualTo(Helpers.FLOWS_COUNT - 1);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void searchFlows_shouldReturnNothingForOppositeQuery() {
+        PagedResults<Flow> flows = client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[q][EQUALS]=io.kestra.tests2&filters[q][NOT_EQUALS]=io.kestra.tests2"), Argument.of(PagedResults.class, Flow.class));
+        assertThat(flows.getTotal()).isEqualTo(0L);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void searchFlowsByNamespacePrefix() {
-        assertThat(client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[namespace][STARTS_WITH_NAMESPACE_PREFIX]=io.kestra.tests2"), Argument.of(PagedResults.class, Flow.class))
+        assertThat(client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[namespace][PREFIX]=io.kestra.tests2"), Argument.of(PagedResults.class, Flow.class))
             .getTotal())
             .isEqualTo(1L);
 
-        assertThat(client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[namespace][STARTS_WITH_NAMESPACE_PREFIX]=io.kestra.tests"), Argument.of(PagedResults.class, Flow.class))
+        assertThat(client.toBlocking().retrieve(HttpRequest.GET("/api/v1/main/flows/search?filters[namespace][PREFIX]=io.kestra.tests"), Argument.of(PagedResults.class, Flow.class))
             .getTotal())
             .isEqualTo(Helpers.FLOWS_COUNT - 1);
     }
@@ -566,7 +587,7 @@ class FlowControllerTest {
     }
 
     /**
-     * this is testing legacy > new filters /by-query endpoints, related file is {@link RequestUtils#mapLegacyParamsToFilters(String, String, String, String, Level, ZonedDateTime, ZonedDateTime, List, List, Duration, ExecutionRepositoryInterface.ChildFilter, List, String, String)}
+     * this is testing legacy > new filters /by-query endpoints, related file is {@link RequestUtils#getFiltersOrDefaultToLegacyMapping(List, String, String, String, String, Level, ZonedDateTime, ZonedDateTime, List, List, Duration, ExecutionRepositoryInterface.ChildFilter, List, String, String)}
      */
     @Test
     void exportFlowsByQueryForANamespace() throws IOException {
@@ -577,7 +598,7 @@ class FlowControllerTest {
 
         try (ZipFile zipFile = new ZipFile(file)) {
             assertThat(zipFile.stream().count())
-                .describedAs("by default /by-query endpoints should use specific NAMESPACE_PREFIX in legacy filter mapping, " +
+                .describedAs("by default /by-query endpoints should use specific PREFIX in legacy filter mapping, " +
                     "in this test, we should get all Flow when querying with namespace=io.kestra.tests, io.kestra.tests.subnamespace are accepted, but not io.kestra.tests2")
                 .isEqualTo(Helpers.FLOWS_COUNT - 1);
         }

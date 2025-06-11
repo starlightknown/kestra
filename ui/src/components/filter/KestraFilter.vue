@@ -6,8 +6,8 @@
             <MonacoEditor
                 ref="monacoEditor"
                 class="border flex-grow-1 position-relative"
-                :language="`${domain === undefined ? '' : (domain + '-')}${legacyQuery ? 'legacy-' : ''}filter`"
-                :schema-type="domain"
+                :language="`${language.domain === undefined ? '' : (language.domain + '-')}${legacyQuery ? 'legacy-' : ''}filter`"
+                :schema-type="language.domain"
                 :value="filter"
                 @change="filter = $event"
                 :theme="themeComputed"
@@ -15,6 +15,7 @@
                 @editor-did-mount="editorDidMount"
                 suggestions-on-focus
                 :placeholder="placeholder ?? t('filters.label')"
+                data-testid="monaco-filter"
             />
             <el-button-group
                 class="d-inline-flex"
@@ -83,6 +84,8 @@
     import {COMPARATORS_REGEX} from "../../composables/monaco/languages/filters/filterLanguageConfigurator.ts";
     import {Comparators, getComparator} from "../../composables/monaco/languages/filters/filterCompletion.ts";
     import {watchDebounced} from "@vueuse/core";
+    import {FilterLanguage} from "../../composables/monaco/languages/filters/filterLanguage.ts";
+    import DefaultFilterLanguage from "../../composables/monaco/languages/filters/impl/defaultFilterLanguage.ts";
 
     const router = useRouter();
     const route = useRoute();
@@ -90,7 +93,7 @@
 
     const props = withDefaults(defineProps<{
         prefix?: string | undefined;
-        domain?: string | undefined,
+        language?: FilterLanguage,
         propertiesWidth?: number,
         buttons?: (Omit<Buttons, "settings"> & {
             settings: Omit<Buttons["settings"], "charts"> & { charts?: Buttons["settings"]["charts"] }
@@ -103,7 +106,7 @@
         legacyQuery?: boolean,
     }>(), {
         prefix: undefined,
-        domain: undefined,
+        language: () => DefaultFilterLanguage,
         propertiesWidth: 144,
         buttons: () => ({
             refresh: {
@@ -145,7 +148,7 @@
         }
     }));
 
-    const itemsPrefix = computed(() => props.prefix ?? route.name?.toString());
+    const itemsPrefix = computed(() => props.prefix ?? route.name?.toString() ?? "fallback-filters");
 
     const emits = defineEmits(["dashboard", "updateProperties"]);
 
@@ -159,14 +162,9 @@
             .map(([key, value]) => [value, key])
     );
 
-    const EXCLUDED_QUERY_FIELDS = ["sort", "size", "page"];
+    const queryParamsToKeep = ref<string[]>([]);
 
-    const filteredRouteQuery = computed(() => route.query === undefined
-        ? undefined
-        : Object.fromEntries(Object.entries(route.query).filter(([key]) => !EXCLUDED_QUERY_FIELDS.includes(key))) as LocationQuery
-    );
-
-    watch(filteredRouteQuery, (newVal) => {
+    watch(() => route.query, (newVal) => {
         if (skipRouteWatcherOnce.value) {
             skipRouteWatcherOnce.value = false;
             return;
@@ -176,12 +174,19 @@
             return;
         }
 
+        queryParamsToKeep.value = [];
+
         let query = newVal;
         if (props.queryNamespace !== undefined) {
             query = Object.fromEntries(
                 Object.entries(newVal)
                     .filter(([key]) => {
-                        return key.startsWith(props.queryNamespace + "[");
+                        if (key.startsWith(props.queryNamespace + "[")) {
+                            return true;
+                        }
+
+                        queryParamsToKeep.value.push(key);
+                        return false;
                     })
                     .map(([key, value]) =>
                         // We trim the queryNamespace from the key
@@ -197,17 +202,28 @@
              */
             filter.value = Object.entries(query)
                 .flatMap(([key, values]) => {
+                    if (!props.language.keyMatchers()?.some(keyMatcher => keyMatcher.test(queryRemapper[key] ?? key))) {
+                        queryParamsToKeep.value.push(key);
+                        return [];
+                    }
+
                     if (!Array.isArray(values)) {
                         values = [values];
                     }
 
-                    return values.map(value => (queryRemapper?.[key] ?? key) + Comparators.EQUALS + value);
+                    return values.map(value => (queryRemapper[key] ?? key) + Comparators.EQUALS + value);
                 }).join(" ");
         } else {
             filter.value = Object.entries(query)
                 .filter(([key]) => key.startsWith("filters["))
                 .flatMap(([key, values]) => {
                     const [_, filterKey, comparator, subKey] = key.match(/filters\[([^\]]+)]\[([^\]]+)](?:\[([^\]]+)])?/) ?? [];
+
+                    if (!props.language.keyMatchers()?.some(keyMatcher => keyMatcher.test(queryRemapper[filterKey] ?? filterKey))) {
+                        queryParamsToKeep.value.push(key);
+                        return [];
+                    }
+
                     let maybeSubKeyString;
                     if (subKey === undefined) {
                         maybeSubKeyString = "";
@@ -219,7 +235,7 @@
                         values = [values];
                     }
 
-                    return values.map(value => (queryRemapper?.[filterKey] ?? filterKey) + maybeSubKeyString + getComparator(comparator as Parameters<typeof getComparator>[0]) + value);
+                    return values.map(value => (queryRemapper?.[filterKey] ?? filterKey) + maybeSubKeyString + getComparator(comparator as Parameters<typeof getComparator>[0]) + (value!.includes(" ") ? `"${value}"` : value));
                 })
                 .join(" ");
         }
@@ -242,30 +258,48 @@
             return {};
         }
 
-        const KEY_MATCHER = "((?:(?<!" + COMPARATORS_REGEX + ")\\S)+?)";
+        const KEY_MATCHER = "((?:(?!" + COMPARATORS_REGEX + ")(?:\\S|\"[^\"]*\"))+?)";
         const COMPARATOR_MATCHER = "(" + COMPARATORS_REGEX + ")";
         const MAYBE_PREVIOUS_VALUE = "(?:(?<=\\S),)?";
-        const VALUE_MATCHER = "((?:" + MAYBE_PREVIOUS_VALUE + "(?:(?:\"[^\\n,]+\")|(?:[^\\s,]+)))+)";
-        const filterMatcher = new RegExp("\\s*(?<!\\S)((?:" + KEY_MATCHER + COMPARATOR_MATCHER + VALUE_MATCHER + ")|(?:(?!" + COMPARATORS_REGEX + ")\\S(?!" + COMPARATORS_REGEX + "))+)(?!\\S)\\s*", "g");
+        const VALUE_MATCHER = "((?:" + MAYBE_PREVIOUS_VALUE + "(?:(?:\"[^\"]*\")|(?:[^\\s,]*)))+)";
+        const filterMatcher = new RegExp("\\s*(?<!\\S)" +
+            "((?:" + KEY_MATCHER + COMPARATOR_MATCHER + VALUE_MATCHER + ")" +
+            "|\"([^\"]*)\"" +
+            "|((?:(?!" + COMPARATORS_REGEX + ")\\S(?!" + COMPARATORS_REGEX + "))+))" +
+            "(?!\\S)\\s*", "g");
         let matches: RegExpExecArray | null;
         const filters: Filter[] = [];
         while ((matches = filterMatcher.exec(filter.value)) !== null) {
-            const key = matches[2];
+            const [_, __, key, comparator, commaSeparatedValues, quotedText, text] = matches as unknown as [string, string, string | undefined, Comparators | undefined, string | undefined, string | undefined, string | undefined];
 
             // If we're not in a {key}{comparator}{value} format, we assume it's a text search
             if (key === undefined) {
-                filters.push({
-                    key: "text",
-                    comparator: "EQUALS",
-                    value: matches[1]
-                });
+                if (props.language.textFilterSupported && (text === undefined || !props.language.keyMatchers()?.some(keyMatcher => keyMatcher.test(text)))) {
+                    filters.push({
+                        key: "text",
+                        comparator: "EQUALS",
+                        value: quotedText ?? text!
+                    });
+                }
                 continue;
             }
 
-            const comparator = matches[3] as Comparators;
-            const values = [...new Set(matches[4].split(",").filter(value => value !== "").map(value => value.replaceAll("\"", "")))];
+            if (!props.language.keyMatchers()?.some(keyMatcher => keyMatcher.test(key))) {
+                continue; // Skip keys that don't match the language key matchers
+            }
 
-            let comparatorLabel: keyof typeof Comparators | "IN" | "NOT_IN" = COMPARATOR_LABEL_BY_VALUE[comparator];
+            if (!props.language.comparatorsPerKey()[FilterLanguage.withNestedKeyPlaceholder(key)].some(c => Comparators[c] === comparator)) {
+                continue; // Skip comparators that are not valid for the key
+            }
+
+            const values = [...new Set(
+                [...commaSeparatedValues?.matchAll(/,?(?:"([^"]*)"|([^",]+))/g) ?? []].map(([_, quotedValue, rawValue]) => quotedValue ?? rawValue) ?? [])
+            ];
+            if (values.length === 0) {
+                continue; // Skip empty values
+            }
+
+            let comparatorLabel: keyof typeof Comparators | "IN" | "NOT_IN" = COMPARATOR_LABEL_BY_VALUE[comparator as Comparators];
             if (values.length > 1) {
                 switch (comparator) {
                 case "=": {
@@ -291,9 +325,9 @@
 
             if (!props.legacyQuery) {
                 if (key.includes(".")) {
-                    const keyAndSubKeyMatch = queryKey.match(/([^.]+)\.([^.]+)/);
+                    const keyAndSubKeyMatch = queryKey.match(/([^.]+)\.(\S+)/);
                     const rootKey = keyAndSubKeyMatch?.[1];
-                    const subKey = keyAndSubKeyMatch?.[2];
+                    const subKey = keyAndSubKeyMatch?.[2].replace(/^"([^"]*)"$/, "$1");
                     if (rootKey === undefined || subKey === undefined) {
                         return [];
                     }
@@ -429,13 +463,16 @@
         skipRouteWatcherOnce.value = true;
         router.push({
             query: {
-                sort: route.query.sort,
-                size: route.query.size,
-                page: route.query.page,
+                ...Object.fromEntries(queryParamsToKeep.value.map(key => {
+                    return [
+                        key,
+                        route.query[key]
+                    ];
+                })),
                 ...filterQueryString.value
             }
         });
-    }, {immediate: true, debounce: 500});
+    }, {immediate: true, debounce: 1000});
 </script>
 
 <style lang="scss" scoped>

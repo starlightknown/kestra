@@ -325,6 +325,12 @@
       "tenants": {
         "message": "Kestra Enterprise Edition은 멀티-tenancy를 지원하여, 각기 다른 팀이나 프로젝트를 위한 완전히 분리된 환경을 제공합니다. 각 환경은 전용 worker 그룹, 비밀 정보 및 내부 저장소 백엔드와 같은 자체 리소스를 갖추고 있습니다.",
         "title": "격리된 Tenant에서 Workflow 관리"
+      },
+      "tests": {
+        "header": "플로우에 대한 단위 테스트",
+        "label": "테스트",
+        "message": "플로우의 로직을 개별적으로 검증하고, 회귀를 조기에 감지하며, 자동화가 변화하고 성장함에 따라 신뢰를 유지하세요.",
+        "title": "모든 변경 사항에 대한 신뢰성 보장"
       }
     },
     "dependencies": "종속성",
@@ -366,6 +372,7 @@
       "comment_uncomment": "주석 처리/주석 해제",
       "decrease_fontsize": "글꼴 크기 줄이기",
       "duplicate_cursor": "커서 복제",
+      "execute_flow": "flow 실행",
       "fold_unfold": "코드 접기/펼치기",
       "increase_fontsize": "글꼴 크기 증가",
       "label": "키보드 단축키",
@@ -813,6 +820,7 @@
     "no_code": {
       "adding": "+ {what} 추가",
       "adding_default": "+ 새 value 추가",
+      "clearSelection": "선택 해제",
       "close": {
         "afterExecution": "실행 task 후 닫기",
         "conditions": "닫기 조건",
@@ -876,6 +884,7 @@
         "tasks": "작업 선택",
         "triggers": "트리거 선택"
       },
+      "toggle_pebble": "Pebble 편집기 전환",
       "unnamed": "이름 없음"
     },
     "no_data": "여기에는 아직 아무것도 없는 것 같아요…<br/>필터를 조정하거나 다시 시도해 보세요!",
@@ -989,7 +998,8 @@
     "plugins": {
       "name": "플러그인",
       "names": "플러그인들",
-      "please": "오른쪽에서 task를 선택하여 해당 문서를 확인하세요."
+      "please": "오른쪽에서 task를 선택하여 해당 문서를 확인하세요.",
+      "release": "릴리스 노트"
     },
     "port": "포트",
     "prefill inputs": "미리 채우기",

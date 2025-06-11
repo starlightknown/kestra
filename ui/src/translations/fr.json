@@ -325,6 +325,12 @@
       "tenants": {
         "message": "L'édition Kestra Enterprise prend en charge la multi-tenance, vous offrant des environnements entièrement isolés pour différentes équipes ou projets, chacun avec ses propres ressources telles que des groupes de workers dédiés ou des secrets et des backends de stockage internes.",
         "title": "Gérer les flux de travail dans des tenants isolés"
+      },
+      "tests": {
+        "header": "Tests unitaires pour les flows",
+        "label": "Tests",
+        "message": "Vérifiez la logique de vos flows de manière isolée, détectez les régressions tôt et maintenez la confiance dans vos automatisations à mesure qu'elles évoluent et se développent.",
+        "title": "Assurez la fiabilité à chaque changement"
       }
     },
     "dependencies": "Dépendances",
@@ -366,6 +372,7 @@
       "comment_uncomment": "Commenter/Décommenter",
       "decrease_fontsize": "Diminuer la taille de la police",
       "duplicate_cursor": "Dupliquer le curseur",
+      "execute_flow": "Exécuter le flow",
       "fold_unfold": "Plier/Déplier le code",
       "increase_fontsize": "Augmenter la taille de la police",
       "label": "Raccourcis clavier",
@@ -813,6 +820,7 @@
     "no_code": {
       "adding": "+ Ajouter un {what}",
       "adding_default": "+ Ajouter une nouvelle valeur",
+      "clearSelection": "Effacer la sélection",
       "close": {
         "afterExecution": "Fermer après l'exécution de la task",
         "conditions": "Condition de fermeture",
@@ -876,6 +884,7 @@
         "tasks": "Sélectionnez une task",
         "triggers": "Sélectionner un trigger"
       },
+      "toggle_pebble": "Basculer l'éditeur Pebble",
       "unnamed": "Aucun Nom"
     },
     "no_data": "On dirait qu'il n'y a rien ici… pour l'instant !<br/>Ajustez vos filtres, ou réessayez !",
@@ -989,7 +998,8 @@
     "plugins": {
       "name": "Plugin",
       "names": "Plugins",
-      "please": "Veuillez choisir une tache sur la droite afin de voir sa documentation"
+      "please": "Veuillez choisir une tache sur la droite afin de voir sa documentation",
+      "release": "Notes de version"
     },
     "port": "Port",
     "prefill inputs": "Pré-remplir",

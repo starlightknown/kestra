@@ -24,13 +24,14 @@
     </el-form-item>
     <el-form label-position="top" v-if="selectedSchema">
         <component
-            :is="`task-${currentSchemaType}`"
+            :is="currentSchemaType"
             v-if="currentSchema"
             :model-value="modelValue"
             :schema="currentSchema"
             :properties="Object.fromEntries(filteredProperties)"
             :definitions="definitions"
             @update:model-value="onAnyOfInput"
+            merge
         />
     </el-form>
 </template>
@@ -39,6 +40,53 @@
     import {mapState} from "vuex";
     import Task from "./Task";
     import {TaskIcon} from "@kestra-io/ui-libs";
+    import getTaskComponent from "./getTaskComponent";
+
+    /**
+     * merge allOf schemas if they exist
+     * @param schema
+     */
+    function consolidateAllOfSchemas(schema, definitions) {
+        if(schema?.allOf?.length) {
+            return {
+                ...schema,
+                type: "object",
+                ...schema.allOf.reduce((acc, item) => {
+                    if(item.$ref) {
+                        const refSchema = definitions[item.$ref.split("/").pop()];
+                        if(refSchema) {
+                            return {
+                                required: [
+                                    ...acc.required,
+                                    ...(refSchema.required ?? [])
+                                ],
+                                properties: {
+                                    ...acc.properties,
+                                    ...refSchema.properties,
+                                }
+                            };
+                        }
+                    } else {
+                        return {
+                            required: [
+                                ...acc.required,
+                                ...(item.required ?? [])
+                            ],
+                            properties: {
+                                ...acc.properties,
+                                ...item.properties,
+                            }
+                        };
+                    }
+                    return acc;
+                }, {
+                    properties: {},
+                    required: [],
+                })
+            }
+        }
+        return schema;
+    }
 
     export default {
         components: {
@@ -46,26 +94,45 @@
         },
         inheritAttrs: false,
         mixins: [Task],
-        emits: ["update:modelValue", "any-of-type"],
+        emits: ["update:modelValue"],
         data() {
             return {
                 isOpen: false,
-                schemas: [],
                 selectedSchema: undefined,
+                finishedMounting: false,
             };
         },
         created() {
-            this.schemas = this.schema?.anyOf ?? [];
-
             const schema = this.schemaOptions.find((item) =>
-                typeof this.modelValue === "string"
-                    ? item.id === "string"
-                    : item.id === this.modelValue?.type,
+                typeof item.value === this.modelValue?.type ||
+                (typeof this.modelValue === "string" && item.value === "string") ||
+                (typeof this.modelValue === "number" && item.value === "integer") ||
+                (Array.isArray(this.modelValue) && item.value === "array"),
             );
-            this.onSelectType(schema?.value || this.schemaOptions[0]?.value);
+
+            this.selectedSchema = schema?.value;
+            
+            // only default selector to required values 
+            if(!this.selectedSchema && this.schemas.length > 0 && this.required) {
+                this.selectedSchema = this.schemas[0].type;
+            }
+
+            if (schema) {
+                this.onSelectType(schema.value);
+            }
+        },
+        mounted() {
+            this.$nextTick(() => {
+                this.finishedMounting = true
+            })
         },
         watch: {
             constantType(val) {
+                // avoid setting values
+                // before user acts on the component
+                if(!this.finishedMounting) {
+                    return;
+                }
                 if(!val) {
                     this.onInput(undefined);
                     return;
@@ -84,7 +151,6 @@
 
         methods: {
             onSelectType(value) {
-                if(this.selectedSchema) this.$emit("any-of-type", value);
                 this.selectedSchema = value;
                 // Set up default values
                 if (
@@ -101,7 +167,6 @@
                                 this.currentSchema.properties[prop].default;
                         }
                     }
-
                     this.onInput(defaultValues)
                 }
             },
@@ -111,10 +176,38 @@
                 }
                 this.onInput(value);
             },
+            resetSelectType() {
+                this.selectedSchema = undefined;
+                this.$nextTick(() => {
+                    this.onInput(undefined);
+                });
+            },
         },
+
+        expose: [
+            "resetSelectType",
+        ],
 
         computed: {
             ...mapState("plugin", ["icons"]),
+            schemas() {
+                if(!this.schema?.anyOf || !Array.isArray(this.schema.anyOf)) {
+                    return [];
+                }
+                return this.schema.anyOf.map((schema) => {
+
+                    if(schema.allOf && Array.isArray(schema.allOf)) {
+                        if(schema.allOf.length === 2 && schema.allOf[0].$ref && !schema.allOf[1].$ref) {
+                            return {
+                                ...schema.allOf[1],
+                                $ref: schema.allOf[0].$ref,
+                            };
+                        }
+                    }
+
+                    return schema;
+                });
+            },
             constantType() {
                 return this.currentSchema?.properties?.type?.const;
             },
@@ -124,10 +217,8 @@
                 }) : [];
             },
             currentSchema() {
-                return (
-                    this.definitions[this.selectedSchema] ??
-                    this.schemaByType[this.selectedSchema]
-                );
+                const rawSchema = this.definitions[this.selectedSchema] ?? this.schemaByType[this.selectedSchema]
+                return consolidateAllOfSchemas(rawSchema, this.definitions);
             },
             schemaByType() {
                 return this.schemas.reduce((acc, schema) => {
@@ -136,21 +227,26 @@
                 }, {});
             },
             currentSchemaType() {
-                return this.selectedSchema ? this.getType(this.currentSchema) : undefined;
+                return this.selectedSchema ? getTaskComponent(this.currentSchema) : undefined;
             },
             isSelectingPlugins() {
-                return this.schemas.some((schema) => (schema.$ref?.split("/").pop() ?? schema.type).includes("io.kestra."));
+                return this.schemaOptions.some((schema) => schema.label.startsWith("io.kestra")) || this.schemas.length > 3;
             },
             schemaOptions() {
+                if (!this.schemas?.length || !this.definitions) {
+                    return [];
+                }
+
                 // find the part of the prefix to schema references that is common to all schemas
                 const schemaRefsArray = this.schemas
-                    .map((schema) => schema.$ref?.split("/").pop() ?? schema.type)
+                    ?.map((schema) => schema.$ref?.split("/").pop() ?? schema.type)
                     .filter((schemaRef) => schemaRef)
+                    .map((schemaRef) => this.definitions[schemaRef]?.type?.const ?? schemaRef)
                     .map((schemaRef) => schemaRef.split("."))
 
                 let mismatch = false
                 const commonPart = schemaRefsArray[0]
-                    .filter((schemaRef, index) => {
+                    ?.filter((schemaRef, index) => {
                         if(!mismatch && schemaRefsArray.every((item) => item[index] === schemaRef)){
                             return true;
                         } else {
@@ -161,30 +257,33 @@
                     .map((schemaRef) => `${schemaRef}.`)
                     .join("");
 
-                // remove the common part from all schema ids
-                return [
-                    ...this.required ? [] : [{
-                        label: "<Reset>",
-                        value: "",
-                        id: "<Reset>",
-                    }],
-                    ...this.schemas.map((schema) => {
-                        const schemaRef = schema.$ref
-                            ? schema.$ref.split("/").pop()
-                            : schema.type;
+                return this.schemas.map((schema) => {
+                    const schemaRef = schema.$ref
+                        ? schema.$ref.split("/").pop()
+                        : schema.type;
 
-                        const cleanSchemaRef = schemaRef.replace(/-\d+$/, "");
-
-                        const lastPartOfValue = cleanSchemaRef.slice(
-                            commonPart.length,
-                        )
-
+                    if (!schemaRef) {
                         return {
-                            label: lastPartOfValue.capitalize(),
-                            value: schemaRef,
-                            id: cleanSchemaRef,
+                            label: "Unknown Schema",
+                            value: "",
+                            id: "",
                         };
-                    })];
+                    }
+
+                    const cleanSchemaRef = schemaRef.replace(/-\d+$/, "");
+
+                    const lastPartOfValue = cleanSchemaRef.slice(
+                        commonPart.length,
+                    )
+
+                    return {
+                        label: lastPartOfValue.capitalize(),
+                        value: schemaRef,
+                        id: cleanSchemaRef,
+                    };
+                }).filter((schema) => {
+                    return schema.value
+                });
             },
         },
     };

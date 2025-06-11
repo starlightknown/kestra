@@ -325,6 +325,12 @@
       "tenants": {
         "message": "Die Kestra Enterprise Edition unterstützt Multi-Tenancy und bietet vollständig isolierte Umgebungen für verschiedene Teams oder Projekte, jeweils mit eigenen Ressourcen wie dedizierten Worker-Gruppen oder Secrets und internen Speicher-Backends.",
         "title": "Verwalten Sie Workflows in isolierten Tenants"
+      },
+      "tests": {
+        "header": "Unittests für Flows",
+        "label": "Tests",
+        "message": "Überprüfen Sie die Logik Ihrer flows isoliert, erkennen Sie frühzeitig Regressionen und bewahren Sie das Vertrauen in Ihre Automatisierungen, während sie sich ändern und wachsen.",
+        "title": "Sicherstellen der Zuverlässigkeit bei jeder Änderung"
       }
     },
     "dependencies": "Abhängigkeiten",
@@ -366,6 +372,7 @@
       "comment_uncomment": "Kommentar/Kommentar entfernen",
       "decrease_fontsize": "Schriftgröße verkleinern",
       "duplicate_cursor": "Kursor duplizieren",
+      "execute_flow": "Flow ausführen",
       "fold_unfold": "Code ein-/ausklappen",
       "increase_fontsize": "Schriftgröße erhöhen",
       "label": "Tastenkombinationen",
@@ -813,6 +820,7 @@
     "no_code": {
       "adding": "+ {what} hinzufügen",
       "adding_default": "+ Neuen Wert hinzufügen",
+      "clearSelection": "Auswahl aufheben",
       "close": {
         "afterExecution": "Nach Ausführung Task schließen",
         "conditions": "Bedingung schließen",
@@ -876,6 +884,7 @@
         "tasks": "Wählen Sie eine Task aus",
         "triggers": "Wählen Sie einen Trigger aus"
       },
+      "toggle_pebble": "Pebble-Editor umschalten",
       "unnamed": "Kein Name"
     },
     "no_data": "Es sieht so aus, als wäre hier noch nichts... bisher!<br/>Passen Sie Ihre Filter an oder versuchen Sie es erneut!",
@@ -989,7 +998,8 @@
     "plugins": {
       "name": "Plugin",
       "names": "Plugins",
-      "please": "Bitte wählen Sie rechts einen Task aus, um dessen Dokumentation zu sehen"
+      "please": "Bitte wählen Sie rechts einen Task aus, um dessen Dokumentation zu sehen",
+      "release": "Versionshinweise"
     },
     "port": "Port",
     "prefill inputs": "Vorausfüllen",

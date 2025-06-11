@@ -16,6 +16,7 @@ import DotsSquare from "vue-material-design-icons/DotsSquare.vue";
 import FormatListGroupPlus from "vue-material-design-icons/FormatListGroupPlus.vue";
 import DatabaseOutline from "vue-material-design-icons/DatabaseOutline.vue";
 import ShieldKeyOutline from "vue-material-design-icons/ShieldKeyOutline.vue";
+import FlaskOutline from "vue-material-design-icons/FlaskOutline.vue";
 
 export function useLeftMenu() {
     const {t} = useI18n({useScope: "global"});
@@ -112,6 +113,18 @@ export function useLeftMenu() {
                 },
             },
             {
+                href: {name: "tests/list"},
+                routes: routeStartWith("tests"),
+                title: t("demos.tests.label"),
+                icon: {
+                    element: shallowRef(FlaskOutline),
+                    class: "menu-icon"
+                },
+                attributes: {
+                    locked: true,
+                },
+            },
+            {
                 href: {name: "namespaces/list"},
                 routes: routeStartWith("namespaces"),
                 title: t("namespaces"),
@@ -149,6 +162,17 @@ export function useLeftMenu() {
                     class: "menu-icon",
                 },
                 child: [
+                    {
+                        title: t("blueprints.custom"),
+                        routes: routeStartWith("blueprints/flow"),
+                        attributes: {
+                            locked: true,
+                        },
+                        href: {
+                            name: "blueprints",
+                            params: {kind: "flow", tab: "custom"},
+                        },
+                    },
                     {
                         title: t("blueprints.flows"),
                         routes: routeStartWith("blueprints/flow"),
