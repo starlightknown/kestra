@@ -108,7 +108,13 @@ export default (
             }
 
             if (errorResponse.response.status === 404) {
-                store.dispatch("core/showError", errorResponse.response.status)
+                if (errorResponse.response.data && errorResponse?.config?.showMessageOnError !== false) {
+                    store.dispatch("core/showMessage", {
+                        response: errorResponse.response,
+                        content: errorResponse.response.data,
+                        variant: "error"
+                    });
+                }
 
                 return Promise.reject(errorResponse);
             }
