@@ -398,7 +398,9 @@
                 const prompt = `Fix the task ${taskRun.taskId} as it generated the following error:\n${errorLine}`;
                 try {
                     window.sessionStorage.setItem("kestra-ai-prompt", prompt);
-                } catch { /* ignore */ }
+                } catch (err) {
+                    console.warn("AI prompt not persisted to sessionStorage:", err);
+                }
 
                 this.$router.push({
                     name: "flows/update",
