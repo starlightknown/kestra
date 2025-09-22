@@ -56,19 +56,6 @@
             <Status size="small" :status="currentTaskRun.state.current" />
         </div>
 
-        <el-button
-            v-if="selectedAttempt(currentTaskRun).state.current === 'FAILED'"
-            type="primary"
-            size="small"
-            class="ai-fix-btn"
-            @click="fixErrorWithAi(currentTaskRun)"
-        >
-            <span class="d-inline-flex align-items-center">
-                <AiIcon class="me-1" />
-                <span>Fix with AI</span>
-            </span>
-        </el-button>
-
         <slot name="buttons" />
 
         <el-dropdown trigger="click">
