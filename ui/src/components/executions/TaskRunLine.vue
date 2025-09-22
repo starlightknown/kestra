@@ -434,13 +434,6 @@
 
     }
 
-    .ai-fix-btn {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 .75rem;
-        align-self: center;
-    }
-
     .taskrun-header {
         background-color: var(--ks-background-table-header);
         .task-icon {
@@ -498,7 +491,7 @@
     }
 </style>
 
-<style scoped lang="scss">
+<style lang="scss">
 .attempt-select > .el-select__wrapper {
     height: 100%;
 }
