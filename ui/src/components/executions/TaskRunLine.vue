@@ -56,6 +56,19 @@
             <Status size="small" :status="currentTaskRun.state.current" />
         </div>
 
+        <el-button
+            v-if="selectedAttempt(currentTaskRun).state.current === 'FAILED'"
+            type="primary"
+            size="small"
+            class="ai-fix-btn"
+            @click="fixErrorWithAi(currentTaskRun)"
+        >
+            <span class="d-inline-flex align-items-center">
+                <AiIcon class="me-1" />
+                <span>Fix with AI</span>
+            </span>
+        </el-button>
+
         <slot name="buttons" />
 
         <el-dropdown trigger="click">
@@ -64,6 +77,15 @@
             </el-button>
             <template #dropdown>
                 <el-dropdown-menu>
+                    <el-dropdown-item
+                        v-if="selectedAttempt(currentTaskRun).state.current === 'FAILED'"
+                        @click="fixErrorWithAi(currentTaskRun)"
+                    >
+                        <span class="d-inline-flex align-items-center">
+                            <AiIcon class="me-1" />
+                            <span>Fix with AI</span>
+                        </span>
+                    </el-dropdown-item>
                     <SubFlowLink
                         v-if="isSubflow(currentTaskRun)"
                         component="el-dropdown-item"
@@ -179,6 +201,7 @@
     import Delete from "vue-material-design-icons/Delete.vue";
     import Download from "vue-material-design-icons/Download.vue";
     import WorkerInfo from "./WorkerInfo.vue";
+    import AiIcon from "../ai/AiIcon.vue";
     import {State} from "@kestra-io/ui-libs"
     import FlowUtils from "../../utils/flowUtils";
     import _groupBy from "lodash/groupBy";
@@ -208,7 +231,8 @@
             ChevronRight,
             ChevronDown,
             DotsVertical,
-            WorkerInfo
+            WorkerInfo,
+            AiIcon
         },
         props: {
             currentTaskRun: {
@@ -360,6 +384,32 @@
             },
             shouldDisplayLogs(taskRunId) {
                 return this.logsWithIndexByAttemptUid[this.attemptUid(taskRunId, this.selectedAttemptNumberByTaskRunId[taskRunId])]
+            },
+            fixErrorWithAi(taskRun) {
+                const attemptNumber = this.selectedAttemptNumberByTaskRunId[taskRun.id] ?? 0;
+                const attemptUid = this.attemptUid(taskRun.id, attemptNumber);
+                const logs = this.logsWithIndexByAttemptUid[attemptUid] ?? [];
+                const errorLine = (() => {
+                    const lastError = [...logs].reverse().find(l => (l.level || "").toString().toUpperCase() === "ERROR");
+                    if (lastError?.message) return lastError.message;
+                    const last = [...logs].reverse().find(l => (l.message ?? "").length > 0);
+                    return last?.message ?? "";
+                })();
+                const prompt = `Fix the task ${taskRun.taskId} as it generated the following error:\n${errorLine}`;
+                try {
+                    window.sessionStorage.setItem("kestra-ai-prompt", prompt);
+                } catch { /* ignore */ }
+
+                this.$router.push({
+                    name: "flows/update",
+                    params: {
+                        namespace: this.followedExecution.namespace,
+                        id: this.followedExecution.flowId,
+                        tab: "edit",
+                        tenant: this.$route.params?.tenant,
+                    },
+                    query: {ai: "open"}
+                });
             }
         },
         emits: ["toggleShowAttempt", "swapDisplayedAttempt", "follow", "update-logs"]
@@ -393,6 +443,13 @@
             color: var(--ks-content-secondary);
         }
 
+    }
+
+    .ai-fix-btn {
+        height: 24px;
+        line-height: 22px;
+        padding: 0 .75rem;
+        align-self: center;
     }
 
     .taskrun-header {
@@ -452,7 +509,7 @@
     }
 </style>
 
-<style lang="scss">
+<style scoped lang="scss">
 .attempt-select > .el-select__wrapper {
     height: 100%;
 }
