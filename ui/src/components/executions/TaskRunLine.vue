@@ -70,7 +70,7 @@
                     >
                         <span class="d-inline-flex align-items-center">
                             <AiIcon class="me-1" />
-                            <span>Fix with AI</span>
+                            <span>{{ $t('fix_with_ai') }}</span>
                         </span>
                     </el-dropdown-item>
                     <SubFlowLink
